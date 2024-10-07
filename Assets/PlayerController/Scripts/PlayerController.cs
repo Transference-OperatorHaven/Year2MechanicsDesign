@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,6 +9,8 @@ public class PlayerController : MonoBehaviour
 {
 	private PlayerControls m_ActionMap;
 	private CharacterMovement m_Movement;
+	private bool m_InMoveActive;
+	private Coroutine m_MoveCoroutine;
 
 	private void Awake()
 	{
@@ -36,11 +40,35 @@ public class PlayerController : MonoBehaviour
 
 	private void Handle_MovePerformed(InputAction.CallbackContext context)
 	{
-		m_Movement.SetInMove(context.ReadValue<float>());
+		//m_Movement.SetInMove(context.ReadValue<float>());
+		float inMove = context.ReadValue<float>();
+
+		m_InMoveActive = true;
+
+		if(m_MoveCoroutine == null)
+		{
+			m_MoveCoroutine = StartCoroutine(C_MoveUpdate(inMove));
+		}
 	}
 	private void Handle_MoveCancelled(InputAction.CallbackContext context)
 	{
-		m_Movement.SetInMove(0f);
+		m_InMoveActive = false;
+		if(m_MoveCoroutine != null)
+		{
+			StopCoroutine(m_MoveCoroutine);
+			m_MoveCoroutine = null;
+			m_Movement.SetInMove(0f);
+		}
+	}
+
+	IEnumerator C_MoveUpdate(float value)
+	{
+		while (m_InMoveActive)
+		{
+			m_Movement.SetInMove(value);
+			yield return new WaitForFixedUpdate();
+			
+		}
 	}
 
 	private void Handle_JumpPerformed(InputAction.CallbackContext context)

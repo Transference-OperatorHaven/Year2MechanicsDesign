@@ -8,13 +8,15 @@ public class CharacterMovement : MonoBehaviour
 	[SerializeField] private StatefulRaycastSensor2D m_GroundSensor;
 	[SerializeField] private float m_MoveSpeed;
 	[SerializeField] private float m_JumpStrength;
+	[SerializeField] private int m_totalJumps;
+	[SerializeField] private int m_JumpCount;
+	[SerializeField] private float m_mostRecentContactY;
 
-	private float m_InMove;
 
 	//[SerializeField] private float m_JumpBufferTime;
-    //[SerializeField] private float m_JumpBufferTimeMark;
+	//[SerializeField] private float m_JumpBufferTimeMark;
 
-    [SerializeField]private float m_CoyoteTime;
+	[SerializeField] private float m_CoyoteTime;
 	private float m_CoyoteTimeMark;
 
 	private void Awake()
@@ -23,26 +25,48 @@ public class CharacterMovement : MonoBehaviour
 		Debug.Assert(m_GroundSensor != null);
 	}
 
-	public void SetInMove(float newMove) => m_InMove = newMove;
+	public void SetInMove(float newMove) => m_RB.linearVelocityX = m_MoveSpeed * newMove;
+
 	public void StartJump()
 	{
-		if (m_GroundSensor.HasDetectedHit() || m_CoyoteTimeMark >= Time.time)
+		if (m_JumpCount < m_totalJumps)
 		{
-			m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
+			if (m_GroundSensor.HasDetectedHit() || m_CoyoteTimeMark >= Time.time)
+			{
+				m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
+				m_JumpCount++;
+			}
 		}
 	}
+
 	public void StopJump() { }
 
 	private void FixedUpdate()
 	{
-		m_RB.linearVelocityX = m_MoveSpeed * m_InMove;
+		
 	}
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+		m_mostRecentContactY = collision.GetContact(0).point.y;
+		if(m_GroundSensor.HasDetectedHit())
+		{
+			m_JumpCount = 0;
+		}
+    }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        if(m_RB.linearVelocityY < 0)
+		//Debug.Log(m_mostRecentContactY + " + " + gameObject.transform.position.y);
+
+		if (m_mostRecentContactY <= gameObject.transform.position.y)
 		{
-			m_CoyoteTimeMark = m_CoyoteTime + Time.time;
-		}
+            if (m_RB.linearVelocityY < 0)
+            {
+				Debug.Log("setting coyote time");
+                m_CoyoteTimeMark = m_CoyoteTime + Time.time;
+            }
+        }
+        
     }
 }
