@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Linq;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -10,14 +12,15 @@ public class CharacterMovement : MonoBehaviour
 	[SerializeField] private float m_JumpStrength;
 	[SerializeField] private int m_totalJumps;
 	[SerializeField] private int m_JumpCount;
-	[SerializeField] private float m_mostRecentContactY;
 
+	[SerializeField] private float m_JumpBufferTime;
+	private float m_JumpBufferCountDown;
+	private Coroutine m_JumpBufferCoroutine;
+    
 
-	//[SerializeField] private float m_JumpBufferTime;
-	//[SerializeField] private float m_JumpBufferTimeMark;
-
-	[SerializeField] private float m_CoyoteTime;
-	private float m_CoyoteTimeMark;
+    [SerializeField] private float m_CoyoteTime;
+	private float m_CoyoteTimeCountDown;
+	private Coroutine m_CoyoteCoroutine;
 
 	private void Awake()
 	{
@@ -25,21 +28,64 @@ public class CharacterMovement : MonoBehaviour
 		Debug.Assert(m_GroundSensor != null);
 	}
 
+	private void Jump()
+	{
+        m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
+        m_JumpCount++;
+        m_JumpBufferCountDown = 0f;
+        if (m_JumpBufferCoroutine != null)
+        {
+            StopCoroutine(m_JumpBufferCoroutine);
+            m_JumpBufferCoroutine = null;
+        }
+    }
+
 	public void SetInMove(float newMove) => m_RB.linearVelocityX = m_MoveSpeed * newMove;
 
 	public void StartJump()
 	{
 		if (m_JumpCount < m_totalJumps)
 		{
-			if (m_GroundSensor.HasDetectedHit() || m_CoyoteTimeMark >= Time.time)
+			if (m_GroundSensor.HasDetectedHit() || m_CoyoteTimeCountDown > 0f)
 			{
-				m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
-				m_JumpCount++;
+				Jump();
 			}
+		}
+		else
+		{
+			if (m_JumpBufferCoroutine == null)
+			{
+				m_JumpBufferCountDown = m_JumpBufferTime;
+				m_JumpBufferCoroutine = StartCoroutine(JumpBuffer());
+			}
+			if(m_JumpBufferCoroutine != null && m_JumpBufferCountDown <= 0f)
+			{
+                StopCoroutine(m_JumpBufferCoroutine);
+                m_JumpBufferCoroutine = null;
+				m_JumpBufferCountDown = m_JumpBufferTime;
+                m_JumpBufferCoroutine = StartCoroutine(JumpBuffer());
+            }
 		}
 	}
 
-	public void StopJump() { }
+	public void StopJump() 
+	{
+		
+	}
+
+	IEnumerator JumpBuffer()
+	{
+        while (m_JumpBufferCountDown > 0f)
+        {
+            m_JumpBufferCountDown -= Time.deltaTime;
+            if (m_GroundSensor.HasDetectedHit())
+            {
+				Jump();
+            }
+            yield return new WaitForFixedUpdate();
+        }
+        yield break;
+    }
 
 	private void FixedUpdate()
 	{
@@ -48,25 +94,43 @@ public class CharacterMovement : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-		m_mostRecentContactY = collision.GetContact(0).point.y;
 		if(m_GroundSensor.HasDetectedHit())
 		{
+
 			m_JumpCount = 0;
+			if(m_CoyoteCoroutine != null)
+			{
+                StopCoroutine(m_CoyoteCoroutine);
+				m_CoyoteCoroutine = null;
+            }
+			
 		}
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
 		//Debug.Log(m_mostRecentContactY + " + " + gameObject.transform.position.y);
-
-		if (m_mostRecentContactY <= gameObject.transform.position.y)
+		
+		if (m_RB.linearVelocityY < 0)
 		{
-            if (m_RB.linearVelocityY < 0)
-            {
-				Debug.Log("setting coyote time");
-                m_CoyoteTimeMark = m_CoyoteTime + Time.time;
+			
+            if (!m_GroundSensor.HasDetectedHit() && m_CoyoteCoroutine == null)
+			{
+                m_CoyoteTimeCountDown = m_CoyoteTime;
+                Debug.Log("setting coyote time");
+                m_CoyoteCoroutine = StartCoroutine(CoyoteTimeReduction());
             }
         }
         
+    }
+
+    IEnumerator CoyoteTimeReduction()
+    {
+        while (m_CoyoteTimeCountDown > 0f)
+        {
+            m_CoyoteTimeCountDown -= Time.deltaTime;
+            yield return new WaitForFixedUpdate();
+        }
+        yield break;
     }
 }

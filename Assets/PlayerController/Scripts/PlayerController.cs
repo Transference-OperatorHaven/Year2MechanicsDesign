@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
 {
 	private PlayerControls m_ActionMap;
 	private CharacterMovement m_Movement;
+	private HealthComponent m_HealthComponent;
 	private bool m_InMoveActive;
 	private Coroutine m_MoveCoroutine;
 
@@ -16,6 +17,9 @@ public class PlayerController : MonoBehaviour
 	{
 		m_ActionMap = new PlayerControls();
 		m_Movement = GetComponent<CharacterMovement>();
+
+		m_HealthComponent = GetComponent<HealthComponent>();
+		if(m_HealthComponent == null) { Debug.Log("No Health Component"); }
 	}
 
 	private void OnEnable()
@@ -26,6 +30,9 @@ public class PlayerController : MonoBehaviour
 		m_ActionMap.Default.MoveHoriz.canceled += Handle_MoveCancelled;
 		m_ActionMap.Default.Jump.performed += Handle_JumpPerformed;
 		m_ActionMap.Default.Jump.canceled += Handle_JumpCancelled;
+
+		m_HealthComponent.onDamaged += Handle_HealthDamaged;
+		m_HealthComponent.onDead += Handle_OnDead;
 	}
 
 	private void OnDisable()
@@ -36,7 +43,10 @@ public class PlayerController : MonoBehaviour
 		m_ActionMap.Default.MoveHoriz.canceled -= Handle_MoveCancelled;
 		m_ActionMap.Default.Jump.performed -= Handle_JumpPerformed;
 		m_ActionMap.Default.Jump.canceled -= Handle_JumpCancelled;
-	}
+
+        m_HealthComponent.onDamaged -= Handle_HealthDamaged;
+        m_HealthComponent.onDead -= Handle_OnDead;
+    }
 
 	private void Handle_MovePerformed(InputAction.CallbackContext context)
 	{
@@ -78,5 +88,15 @@ public class PlayerController : MonoBehaviour
 	private void Handle_JumpCancelled(InputAction.CallbackContext context)
 	{
 		m_Movement.StopJump();
+	}
+
+	void Handle_HealthDamaged(float p_CurrentHealth, float p_MaxHealth, float p_Change)
+	{
+		Debug.Log($"Current health is: {p_CurrentHealth} out of: {p_MaxHealth} and the damaged taken was: {p_Change}");
+	}
+
+	void Handle_OnDead(MonoBehaviour p_Attacker)
+	{
+		Debug.Log($"Died and the attacker was: {p_Attacker.gameObject.name}");
 	}
 }
