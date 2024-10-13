@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -12,12 +13,14 @@ public class CharacterMovement : MonoBehaviour
 	[SerializeField] private float m_JumpStrength;
 	[SerializeField] private int m_totalJumps;
 	[SerializeField] private int m_JumpCount;
-
-	[SerializeField] private float m_JumpBufferTime;
+    [Header("Jump Buffer Settings")]
+    [SerializeField] private float m_JumpBufferTime;
 	private float m_JumpBufferCountDown;
 	private Coroutine m_JumpBufferCoroutine;
-    
+	[Header("Jump Apex Anti-Gravity Settings")]
+	private Coroutine m_AntiGravCheckCoroutine;
 
+    [Header("Coyote Time Settings")]
     [SerializeField] private float m_CoyoteTime;
 	private float m_CoyoteTimeCountDown;
 	private Coroutine m_CoyoteCoroutine;
@@ -33,7 +36,11 @@ public class CharacterMovement : MonoBehaviour
         m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
         m_JumpCount++;
         m_JumpBufferCountDown = 0f;
-        if (m_JumpBufferCoroutine != null)
+		if(m_AntiGravCheckCoroutine == null)
+		{
+			m_AntiGravCheckCoroutine = StartCoroutine(AntiGravApex());
+        }
+		if (m_JumpBufferCoroutine != null)
         {
             StopCoroutine(m_JumpBufferCoroutine);
             m_JumpBufferCoroutine = null;
@@ -87,6 +94,18 @@ public class CharacterMovement : MonoBehaviour
         yield break;
     }
 
+	IEnumerator AntiGravApex()
+	{
+		while(!m_GroundSensor.HasDetectedHit())
+		{
+			if(m_RB.linearVelocityY > -1f && m_RB.linearVelocityY < 1f)
+			{
+				Debug.Log("jump apex");
+			}
+			yield return null;
+		}
+	}
+
 	private void FixedUpdate()
 	{
 		
@@ -103,6 +122,12 @@ public class CharacterMovement : MonoBehaviour
                 StopCoroutine(m_CoyoteCoroutine);
 				m_CoyoteCoroutine = null;
             }
+
+			if(m_AntiGravCheckCoroutine != null)
+			{
+				StopCoroutine(m_AntiGravCheckCoroutine);
+				m_AntiGravCheckCoroutine = null;
+			}
 			
 		}
     }
