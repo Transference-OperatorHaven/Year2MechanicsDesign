@@ -2357,6 +2357,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 929667974029550097, guid: 3357c003e0755d64c8b53ac23d3acd15, type: 3}
+      propertyPath: m_AntiGravTimer
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 929667974029550097, guid: 3357c003e0755d64c8b53ac23d3acd15, type: 3}
       propertyPath: m_JumpBufferTime
       value: 0.15
       objectReference: {fileID: 0}

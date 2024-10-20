@@ -19,6 +19,8 @@ public class CharacterMovement : MonoBehaviour
 	private Coroutine m_JumpBufferCoroutine;
 	[Header("Jump Apex Anti-Gravity Settings")]
 	private Coroutine m_AntiGravCheckCoroutine;
+	private float m_AntiGravCountDown;
+	[SerializeField] private float m_AntiGravTimer;
 
     [Header("Coyote Time Settings")]
     [SerializeField] private float m_CoyoteTime;
@@ -38,6 +40,7 @@ public class CharacterMovement : MonoBehaviour
         m_JumpBufferCountDown = 0f;
 		if(m_AntiGravCheckCoroutine == null)
 		{
+			m_AntiGravCountDown = m_AntiGravTimer;
 			m_AntiGravCheckCoroutine = StartCoroutine(AntiGravApex());
         }
 		if (m_JumpBufferCoroutine != null)
@@ -96,11 +99,18 @@ public class CharacterMovement : MonoBehaviour
 
 	IEnumerator AntiGravApex()
 	{
+		yield return new WaitForSeconds(0.1f);
 		while(!m_GroundSensor.HasDetectedHit())
 		{
 			if(m_RB.linearVelocityY > -1f && m_RB.linearVelocityY < 1f)
 			{
-				Debug.Log("jump apex");
+				while(m_AntiGravCountDown > 0f)
+				{
+					m_RB.linearVelocityY = 0;
+					m_AntiGravCountDown -= Time.deltaTime;
+					yield return null;
+				}
+				yield break;
 			}
 			yield return null;
 		}
@@ -115,7 +125,7 @@ public class CharacterMovement : MonoBehaviour
     {
 		if(m_GroundSensor.HasDetectedHit())
 		{
-
+			Debug.Log("Touched ground");
 			m_JumpCount = 0;
 			if(m_CoyoteCoroutine != null)
 			{
