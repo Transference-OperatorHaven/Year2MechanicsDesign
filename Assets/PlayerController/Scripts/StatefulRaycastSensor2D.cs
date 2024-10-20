@@ -76,6 +76,7 @@ public class StatefulRaycastSensor2D: MonoBehaviour
 	public Vector2 GetNormal() => m_HitInfo.normal;
 	public Vector2 GetPosition() => m_HitInfo.point;
 	public Collider2D GetCollider() => m_HitInfo.collider;
+	public int GetLayerMask() => m_LayerMask;
 
 	//setters done in the same way as no extra pre-processing necessary on input values
 	public void SetSensorLocalVector(Vector3 newVector) => m_SensorLocalVector = newVector;
