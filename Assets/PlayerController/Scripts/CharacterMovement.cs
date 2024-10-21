@@ -19,6 +19,7 @@ public class CharacterMovement : MonoBehaviour
     [SerializeField] private float m_FastFallGravScale;
 	[Header("Fall Through Semi Solids")]
 	private Coroutine m_FallThroughCoroutine;
+	private Collider2D m_PlatformCollision;
 	
 	
 	[Header("Crouch Settings")]
@@ -28,6 +29,8 @@ public class CharacterMovement : MonoBehaviour
 	private float m_TempMoveSpeed;
     private Coroutine m_CrouchCoroutine;
 	private bool m_CrouchCheck;
+	[SerializeField] private float m_CrouchLimit;
+    private SpriteRenderer m_SpriteRenderer;
     [Header("Crouch Buffer")]
     [SerializeField] private float m_CrouchBufferTime;
     private float m_CrouchBufferCountDown;
@@ -57,6 +60,7 @@ public class CharacterMovement : MonoBehaviour
 	{
 		m_RB = GetComponent<Rigidbody2D>();
 		m_Collider = GetComponentInChildren<CapsuleCollider2D>();
+		m_SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
 		Debug.Assert(m_GroundSensor != null);
 		m_MoveSpeed = m_MoveSpeedBase;
 	}
@@ -97,15 +101,22 @@ public class CharacterMovement : MonoBehaviour
             Collider2D platform = m_GroundSensor.GetCollider();
             if (platform.tag == "SemiSolid" && platform != null)
             {
-                Debug.Log("Falling throuhg");
-                if (m_FallThroughCoroutine == null)
-                {
-                    m_FallThroughCoroutine = StartCoroutine(C_FallDown(platform));
-                }
+				m_PlatformCollision = platform;
+				m_PlatformCollision.GetComponent<PlatformEffector2D>().rotationalOffset = 180;
             }
         }
 		
 	}
+
+	public void FallDownCancel()
+	{
+		if(m_PlatformCollision != null)
+		{
+            m_PlatformCollision.GetComponent<PlatformEffector2D>().rotationalOffset = 0;
+			m_PlatformCollision = null;
+        }
+
+    }
 
 	public void StartJump()
 	{
@@ -160,6 +171,9 @@ public class CharacterMovement : MonoBehaviour
 	{
         if (m_CrouchCoroutine != null)
         {
+            m_SpriteRenderer.gameObject.transform.localScale = new Vector3(1, 1, 1);
+			m_SpriteRenderer.gameObject.transform.localPosition = new Vector3(0, 1, 0);
+			m_SpriteRenderer.color = Color.red;
             StopCoroutine(m_CrouchCoroutine);
             m_CrouchCoroutine = null;
 			if(m_MoveSpeed == 0f)
@@ -167,7 +181,7 @@ public class CharacterMovement : MonoBehaviour
                 m_MoveSpeed = m_TempMoveSpeed;
             }
             m_MoveSpeed *= m_CrouchMoveSpeedMult;
-            if (m_RB.constraints == RigidbodyConstraints2D.FreezeAll)
+            if (m_RB.constraints != RigidbodyConstraints2D.FreezeRotation)
             {
                 m_RB.constraints = RigidbodyConstraints2D.FreezeRotation;
             }
@@ -179,7 +193,10 @@ public class CharacterMovement : MonoBehaviour
     {
         if (m_CrouchCoroutine == null)
         {
-			m_CrouchCheck = true;
+			m_SpriteRenderer.gameObject.transform.localScale = new Vector3(1, 0.75f, 1);
+            m_SpriteRenderer.gameObject.transform.localPosition = new Vector3(0, 0.75f, 0);
+			m_SpriteRenderer.color = Color.blue;
+            m_CrouchCheck = true;
             m_MoveSpeed /= m_CrouchMoveSpeedMult;
             m_TempMoveSpeed = m_MoveSpeed;
             m_CrouchCoroutine = StartCoroutine(C_CrouchCoroutine());
@@ -224,6 +241,7 @@ public class CharacterMovement : MonoBehaviour
     {
         if (m_GroundSensor.HasDetectedHit())
         {
+			Debug.Log("Landed");
             if (m_Collider.size.y != 2)
             {
                 m_Collider.size = new Vector2(1, 2);
@@ -232,6 +250,7 @@ public class CharacterMovement : MonoBehaviour
             m_JumpCount = 0;
 			if(m_FallThroughCoroutine != null)
 			{
+				m_PlatformCollision.gameObject.GetComponent<PlatformEffector2D>().rotationalOffset = 0f;
 				StopCoroutine (m_FallThroughCoroutine);
 				m_FallThroughCoroutine = null;
 			}
@@ -272,13 +291,6 @@ public class CharacterMovement : MonoBehaviour
 
     }
 
-	IEnumerator C_FallDown(Collider2D collision)
-	{
-		collision.gameObject.GetComponent<Collider2D>().isTrigger = true;
-		yield return new WaitForSeconds(0.4f);
-        collision.gameObject.GetComponent<Collider2D>().isTrigger = false;
-    }
-
     IEnumerator C_CrouchBuffer()
 	{
         while (m_CrouchBufferCountDown > 0f)
@@ -298,10 +310,10 @@ public class CharacterMovement : MonoBehaviour
 	{
 		while (m_CrouchCheck)
 		{
-			RaycastHit2D hit = Physics2D.Raycast(new Vector3(gameObject.transform.position.x + (0.5f * m_MoveDir), gameObject.transform.position.y, gameObject.transform.position.z), new Vector2((1f * m_MoveDir), -1), m_CrouchLedgeCheckDistance, m_GroundSensor.GetLayerMask());
+			RaycastHit2D hit = Physics2D.Raycast(new Vector3(gameObject.transform.position.x + (m_CrouchLimit * m_MoveDir), gameObject.transform.position.y, gameObject.transform.position.z), new Vector2((1f * m_MoveDir), -1), m_CrouchLedgeCheckDistance, m_GroundSensor.GetLayerMask());
 			if (!hit)
 			{
-				m_RB.constraints = RigidbodyConstraints2D.FreezeAll;
+				m_RB.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
 				m_MoveSpeed = 0f;
 			}
 			else
@@ -361,6 +373,8 @@ public class CharacterMovement : MonoBehaviour
 			}
             yield return null;
         }
+
+		m_RB.gravityScale = 1;
 		
 	}
 
@@ -376,6 +390,6 @@ public class CharacterMovement : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-		Debug.DrawRay(new Vector3(gameObject.transform.position.x+(0.5f*m_MoveDir), gameObject.transform.position.y, gameObject.transform.position.z), new Vector2(1f * m_MoveDir, -1), Color.cyan);
+		Debug.DrawRay(new Vector3(gameObject.transform.position.x+(m_CrouchLimit*m_MoveDir), gameObject.transform.position.y, gameObject.transform.position.z), new Vector2(1f * m_MoveDir, -1), Color.cyan);
     }
 }

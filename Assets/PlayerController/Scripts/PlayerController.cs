@@ -33,6 +33,7 @@ public class PlayerController : MonoBehaviour
 		m_ActionMap.Default.Crouch.performed += Handle_CrouchPerformed;
 		m_ActionMap.Default.Crouch.canceled += Handle_CrouchCancelled;
 		m_ActionMap.Default.MoveDown.performed += Handle_DownPerformed;
+		m_ActionMap.Default.MoveDown.canceled += Handle_DownCancelled;
 
 		m_HealthComponent.onDamaged += Handle_HealthDamaged;
 		m_HealthComponent.onDead += Handle_OnDead;
@@ -86,9 +87,14 @@ public class PlayerController : MonoBehaviour
 		}
 	}
 
-	public void Handle_DownPerformed(InputAction.CallbackContext context)
+	private void Handle_DownPerformed(InputAction.CallbackContext context)
 	{
 		m_Movement.FallDown();
+	}
+
+	private void Handle_DownCancelled(InputAction.CallbackContext context)
+	{
+		m_Movement.FallDownCancel();
 	}
 
 	private void Handle_JumpPerformed(InputAction.CallbackContext context)
