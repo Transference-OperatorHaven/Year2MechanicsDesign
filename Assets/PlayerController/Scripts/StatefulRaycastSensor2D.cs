@@ -57,7 +57,6 @@ public class StatefulRaycastSensor2D: MonoBehaviour
 
 		//Run the raycast and store the result in a temporary variable
 		RaycastHit2D newHitInfo = Physics2D.Raycast(start, worldDir.normalized, worldDir.magnitude + Mathf.Epsilon, m_LayerMask);
-
 		if(newHitInfo.collider != m_HitInfo.collider)
 		{ //the object being detected has changed but that doesnt mean the state has changed. We may still be detecting a hit just on a different object
 			if((newHitInfo.collider != null) != (m_HitInfo.collider != null))

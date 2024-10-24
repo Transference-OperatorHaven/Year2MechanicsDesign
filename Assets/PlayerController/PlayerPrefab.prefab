@@ -79,15 +79,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_GroundSensor: {fileID: 2938755533799335079}
-  m_MoveSpeed: 5
+  m_MoveSpeedBase: 0
   m_JumpStrength: 10
   m_totalJumps: 1
   m_JumpCount: 0
-  m_FastFallGravScale: 0
   m_CrouchLedgeCheckDistance: 0
   m_CrouchMoveSpeedMult: 0
+  m_CrouchLimit: 0
+  m_CrouchBufferTime: 0
   m_FallSpeedCap: 0
-  m_JumpBufferTime: 0.2
+  m_JumpBufferTime: 2
   m_AntiGravTimer: 0
   m_CoyoteTime: 0.15
 --- !u!114 &7287660109704455578

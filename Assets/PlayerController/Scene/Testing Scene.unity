@@ -3211,8 +3211,12 @@ PrefabInstance:
       value: PlayerPrefab
       objectReference: {fileID: 0}
     - target: {fileID: 2938755533799335079, guid: 3357c003e0755d64c8b53ac23d3acd15, type: 3}
+      propertyPath: m_RunMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2938755533799335079, guid: 3357c003e0755d64c8b53ac23d3acd15, type: 3}
       propertyPath: m_LayerMask.m_Bits
-      value: 264
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 3600401525870630746, guid: 3357c003e0755d64c8b53ac23d3acd15, type: 3}
       propertyPath: m_LocalPosition.x

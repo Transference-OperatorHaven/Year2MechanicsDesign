@@ -16,7 +16,7 @@ public class CharacterMovement : MonoBehaviour
 	[SerializeField] private float m_JumpStrength;
 	[SerializeField] private int m_totalJumps;
 	[SerializeField] private int m_JumpCount;
-    [SerializeField] private float m_FastFallGravScale;
+	private bool m_JumpState;
 	[Header("Fall Through Semi Solids")]
 	private Coroutine m_FallThroughCoroutine;
 	private Collider2D m_PlatformCollision;
@@ -71,8 +71,11 @@ public class CharacterMovement : MonoBehaviour
 		{
 			CancelCrouch();
 			m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
-			m_Collider.size = new Vector2(1, 1.5f);
 			m_JumpCount++;
+			if(m_JumpBufferCountDown > 0)
+			{
+				JumpCancel();
+			}
 			m_JumpBufferCountDown = 0f;
 			if (m_AntiGravCheckCoroutine == null)
 			{
@@ -85,6 +88,27 @@ public class CharacterMovement : MonoBehaviour
 				m_JumpBufferCoroutine = null;
 			}
 		}
+    }
+
+	public void JumpCancel()
+	{
+        if (!m_GroundSensor.HasDetectedHit() || (m_GroundSensor.GetCollider() != null && !m_Collider.IsTouching(m_GroundSensor.GetCollider())))
+        {
+            if (m_AntiGravCheckCoroutine != null)
+            {
+                StopCoroutine(m_AntiGravCheckCoroutine);
+                m_AntiGravCheckCoroutine = null;
+            }
+            if (m_RB.linearVelocityY > 0f)
+            {
+                m_RB.linearVelocityY = 0f;
+            }
+            if (m_FallingCoroutine == null)
+            {
+                m_FallingCoroutine = StartCoroutine(C_FallingCoroutine());
+            }
+
+        }
     }
 
     public void SetInMove(float newMove)
@@ -112,10 +136,16 @@ public class CharacterMovement : MonoBehaviour
 	{
 		if(m_PlatformCollision != null)
 		{
-            m_PlatformCollision.GetComponent<PlatformEffector2D>().rotationalOffset = 0;
-			m_PlatformCollision = null;
+			m_FallThroughCoroutine = StartCoroutine(C_StopFallDown());
         }
 
+    }
+
+	IEnumerator C_StopFallDown()
+	{
+		yield return new WaitForSeconds(0.4f);
+        m_PlatformCollision.GetComponent<PlatformEffector2D>().rotationalOffset = 0;
+        m_PlatformCollision = null;
     }
 
 	public void StartJump()
@@ -124,6 +154,7 @@ public class CharacterMovement : MonoBehaviour
 		{
 			if (m_GroundSensor.HasDetectedHit() || m_CoyoteTimeCountDown > 0f)
 			{
+				m_JumpState = true;
 				Jump();
 			}
 		}
@@ -147,24 +178,9 @@ public class CharacterMovement : MonoBehaviour
 
 	public void StopJump() 
 	{
-		if(!m_GroundSensor.HasDetectedHit())
-		{
-			if(m_AntiGravCheckCoroutine != null)
-			{
-				StopCoroutine(m_AntiGravCheckCoroutine);
-				m_AntiGravCheckCoroutine = null;
-			}
-			if(m_RB.linearVelocityY > 0f)
-			{
-				m_RB.linearVelocityY = 0f;
-			}
-			m_RB.gravityScale = m_FastFallGravScale;
-			if(m_FallingCoroutine == null)
-			{
-				m_FallingCoroutine = StartCoroutine(C_FallingCoroutine());
-			}
-
-		}
+		m_JumpState = false;
+		JumpCancel();
+        
 	}
 
 	private void CancelCrouch()
@@ -210,6 +226,7 @@ public class CharacterMovement : MonoBehaviour
 
     public void StartCrouch()
 	{
+
 		if (m_GroundSensor.HasDetectedHit())
 		{
 			Crouch();
@@ -241,14 +258,8 @@ public class CharacterMovement : MonoBehaviour
     {
         if (m_GroundSensor.HasDetectedHit())
         {
-			Debug.Log("Landed");
-            if (m_Collider.size.y != 2)
-            {
-                m_Collider.size = new Vector2(1, 2);
-            }
-            m_RB.gravityScale = 1;
             m_JumpCount = 0;
-			if(m_FallThroughCoroutine != null)
+			if(m_FallThroughCoroutine != null && m_PlatformCollision != null)
 			{
 				m_PlatformCollision.gameObject.GetComponent<PlatformEffector2D>().rotationalOffset = 0f;
 				StopCoroutine (m_FallThroughCoroutine);
@@ -364,7 +375,6 @@ public class CharacterMovement : MonoBehaviour
 	}
 	IEnumerator C_FallingCoroutine()
 	{
-        m_Collider.size = new Vector2(1, 2f);
         while (!m_GroundSensor.HasDetectedHit())
 		{
 			if(m_RB.linearVelocityY < -m_FallSpeedCap)
@@ -373,8 +383,6 @@ public class CharacterMovement : MonoBehaviour
 			}
             yield return null;
         }
-
-		m_RB.gravityScale = 1;
 		
 	}
 
