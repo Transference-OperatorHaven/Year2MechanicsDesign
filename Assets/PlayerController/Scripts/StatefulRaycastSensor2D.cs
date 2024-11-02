@@ -17,7 +17,8 @@ public class StatefulRaycastSensor2D: MonoBehaviour
 
 	//tracker fields for realtime gathered data
 	private float m_TimeSinceInterval;
-	private RaycastHit2D m_HitInfo;
+    [SerializeField] private RaycastHit2D m_HitInfo;
+	[SerializeField] private GameObject m_HitGO;
 
 	//Always use awake to set up elements within this class - Start is used for second stage initialisation if needed (registering other classes)
 	private void Awake()
@@ -42,6 +43,7 @@ public class StatefulRaycastSensor2D: MonoBehaviour
 				if(m_TimeSinceInterval >= m_Interval )
 				{
 					RunCheck();
+					
 					m_TimeSinceInterval -= m_Interval; //-= used so that the clock doesnt lose time from overshooting
 				}
 				break;
@@ -57,13 +59,15 @@ public class StatefulRaycastSensor2D: MonoBehaviour
 
 		//Run the raycast and store the result in a temporary variable
 		RaycastHit2D newHitInfo = Physics2D.Raycast(start, worldDir.normalized, worldDir.magnitude + Mathf.Epsilon, m_LayerMask);
-		if(newHitInfo.collider != m_HitInfo.collider)
+        Debug.DrawLine(start, start+(worldDir.normalized * (worldDir.magnitude + Mathf.Epsilon)), Color.red);
+		if (newHitInfo.collider != m_HitInfo.collider)
 		{ //the object being detected has changed but that doesnt mean the state has changed. We may still be detecting a hit just on a different object
 			if((newHitInfo.collider != null) != (m_HitInfo.collider != null))
 			{ //if we get here then the state has changed and the event will need to notify listeners
 				OnSensorStateChange?.Invoke(newHitInfo.collider != null);
 			}
-			m_HitInfo = newHitInfo; //structs copy value in C# they arent pointers
+			m_HitInfo = newHitInfo;
+			 //structs copy value in C# they arent pointers
 		}
 
 		return m_HitInfo.collider != null;
@@ -81,4 +85,9 @@ public class StatefulRaycastSensor2D: MonoBehaviour
 	public void SetSensorLocalVector(Vector3 newVector) => m_SensorLocalVector = newVector;
 	public void SetLayerMask(LayerMask newMask) => m_LayerMask = newMask;
 	public void SetInterval(float newInterval) => m_Interval = newInterval;
+
+    private void OnDrawGizmos()
+    {
+        
+    }
 }

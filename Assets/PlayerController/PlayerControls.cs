@@ -62,6 +62,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""[PH] Log Current Collider"",
+                    ""type"": ""Button"",
+                    ""id"": ""d41abc97-8550-4171-8400-825b60e59a1b"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -207,6 +216,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""MoveDown"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5f7f29b7-bb16-4761-946e-5045de19a956"",
+                    ""path"": ""<Keyboard>/numpadMinus"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""[PH] Log Current Collider"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -219,6 +239,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Default_Jump = m_Default.FindAction("Jump", throwIfNotFound: true);
         m_Default_Crouch = m_Default.FindAction("Crouch", throwIfNotFound: true);
         m_Default_MoveDown = m_Default.FindAction("MoveDown", throwIfNotFound: true);
+        m_Default_PHLogCurrentCollider = m_Default.FindAction("[PH] Log Current Collider", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -289,6 +310,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Default_Jump;
     private readonly InputAction m_Default_Crouch;
     private readonly InputAction m_Default_MoveDown;
+    private readonly InputAction m_Default_PHLogCurrentCollider;
     public struct DefaultActions
     {
         private @PlayerControls m_Wrapper;
@@ -297,6 +319,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public InputAction @Jump => m_Wrapper.m_Default_Jump;
         public InputAction @Crouch => m_Wrapper.m_Default_Crouch;
         public InputAction @MoveDown => m_Wrapper.m_Default_MoveDown;
+        public InputAction @PHLogCurrentCollider => m_Wrapper.m_Default_PHLogCurrentCollider;
         public InputActionMap Get() { return m_Wrapper.m_Default; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -318,6 +341,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @MoveDown.started += instance.OnMoveDown;
             @MoveDown.performed += instance.OnMoveDown;
             @MoveDown.canceled += instance.OnMoveDown;
+            @PHLogCurrentCollider.started += instance.OnPHLogCurrentCollider;
+            @PHLogCurrentCollider.performed += instance.OnPHLogCurrentCollider;
+            @PHLogCurrentCollider.canceled += instance.OnPHLogCurrentCollider;
         }
 
         private void UnregisterCallbacks(IDefaultActions instance)
@@ -334,6 +360,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @MoveDown.started -= instance.OnMoveDown;
             @MoveDown.performed -= instance.OnMoveDown;
             @MoveDown.canceled -= instance.OnMoveDown;
+            @PHLogCurrentCollider.started -= instance.OnPHLogCurrentCollider;
+            @PHLogCurrentCollider.performed -= instance.OnPHLogCurrentCollider;
+            @PHLogCurrentCollider.canceled -= instance.OnPHLogCurrentCollider;
         }
 
         public void RemoveCallbacks(IDefaultActions instance)
@@ -357,5 +386,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         void OnJump(InputAction.CallbackContext context);
         void OnCrouch(InputAction.CallbackContext context);
         void OnMoveDown(InputAction.CallbackContext context);
+        void OnPHLogCurrentCollider(InputAction.CallbackContext context);
     }
 }

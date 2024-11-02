@@ -34,8 +34,9 @@ public class PlayerController : MonoBehaviour
 		m_ActionMap.Default.Crouch.canceled += Handle_CrouchCancelled;
 		m_ActionMap.Default.MoveDown.performed += Handle_DownPerformed;
 		m_ActionMap.Default.MoveDown.canceled += Handle_DownCancelled;
+        m_ActionMap.Default.PHLogCurrentCollider.performed += Handle_DebugCollider;
 
-		m_HealthComponent.onDamaged += Handle_HealthDamaged;
+        m_HealthComponent.onDamaged += Handle_HealthDamaged;
 		m_HealthComponent.onDead += Handle_OnDead;
 	}
 
@@ -49,10 +50,16 @@ public class PlayerController : MonoBehaviour
 		m_ActionMap.Default.Jump.canceled -= Handle_JumpCancelled;
         m_ActionMap.Default.Crouch.canceled -= Handle_CrouchCancelled;
         m_ActionMap.Default.MoveDown.performed -= Handle_DownPerformed;
+		m_ActionMap.Default.PHLogCurrentCollider.performed -= Handle_DebugCollider;
 
         m_HealthComponent.onDamaged -= Handle_HealthDamaged;
         m_HealthComponent.onDead -= Handle_OnDead;
     }
+
+	private void Handle_DebugCollider(InputAction.CallbackContext context)
+	{
+		m_Movement.DebugCurrentCollider();
+	}
 
 	private void Handle_MovePerformed(InputAction.CallbackContext context)
 	{

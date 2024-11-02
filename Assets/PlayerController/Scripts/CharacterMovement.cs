@@ -16,7 +16,6 @@ public class CharacterMovement : MonoBehaviour
 	[SerializeField] private float m_JumpStrength;
 	[SerializeField] private int m_totalJumps;
 	[SerializeField] private int m_JumpCount;
-	private bool m_JumpState;
 	[Header("Fall Through Semi Solids")]
 	private Coroutine m_FallThroughCoroutine;
 	private Collider2D m_PlatformCollision;
@@ -51,7 +50,8 @@ public class CharacterMovement : MonoBehaviour
 	private float m_AntiGravCountDown;
 	[SerializeField] private float m_AntiGravTimer;
 
-    [Header("Coyote Time Settings")]
+	[Header("Coyote Time Settings")]
+	private bool m_CanCoyote;
     [SerializeField] private float m_CoyoteTime;
 	private float m_CoyoteTimeCountDown;
 	private Coroutine m_CoyoteCoroutine;
@@ -63,6 +63,11 @@ public class CharacterMovement : MonoBehaviour
 		m_SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
 		Debug.Assert(m_GroundSensor != null);
 		m_MoveSpeed = m_MoveSpeedBase;
+	}
+
+	public void DebugCurrentCollider()
+	{
+		Debug.Log(m_GroundSensor.GetCollider().gameObject.name);
 	}
 
 	private void Jump()
@@ -92,7 +97,7 @@ public class CharacterMovement : MonoBehaviour
 
 	public void JumpCancel()
 	{
-        if (!m_GroundSensor.HasDetectedHit() || (m_GroundSensor.GetCollider() != null && !m_Collider.IsTouching(m_GroundSensor.GetCollider())))
+        if (!m_GroundSensor.RunCheck() || (m_GroundSensor.GetCollider() != null && !m_Collider.IsTouching(m_GroundSensor.GetCollider())))
         {
             if (m_AntiGravCheckCoroutine != null)
             {
@@ -120,13 +125,14 @@ public class CharacterMovement : MonoBehaviour
 
 	public void FallDown()
 	{
-		if(m_GroundSensor.HasDetectedHit() && !m_CrouchCheck)
+		if(m_GroundSensor.RunCheck() && !m_CrouchCheck)
 		{
             Collider2D platform = m_GroundSensor.GetCollider();
             if (platform.tag == "SemiSolid" && platform != null)
             {
 				m_PlatformCollision = platform;
 				m_PlatformCollision.GetComponent<PlatformEffector2D>().rotationalOffset = 180;
+				m_CanCoyote = false;
             }
         }
 		
@@ -154,7 +160,6 @@ public class CharacterMovement : MonoBehaviour
 		{
 			if (m_GroundSensor.HasDetectedHit() || m_CoyoteTimeCountDown > 0f)
 			{
-				m_JumpState = true;
 				Jump();
 			}
 		}
@@ -178,7 +183,6 @@ public class CharacterMovement : MonoBehaviour
 
 	public void StopJump() 
 	{
-		m_JumpState = false;
 		JumpCancel();
         
 	}
@@ -227,7 +231,7 @@ public class CharacterMovement : MonoBehaviour
     public void StartCrouch()
 	{
 
-		if (m_GroundSensor.HasDetectedHit())
+		if (m_GroundSensor.RunCheck())
 		{
 			Crouch();
 		}
@@ -254,35 +258,40 @@ public class CharacterMovement : MonoBehaviour
 		CancelCrouch();
 	}
 
+	private void ResetConditions()
+	{
+        m_JumpCount = 0;
+		m_CanCoyote = true;
+		m_CoyoteTimeCountDown = 0;
+        if (m_FallThroughCoroutine != null && m_PlatformCollision != null)
+        {
+            m_PlatformCollision.gameObject.GetComponent<PlatformEffector2D>().rotationalOffset = 0f;
+            StopCoroutine(m_FallThroughCoroutine);
+            m_FallThroughCoroutine = null;
+        }
+
+        if (m_CoyoteCoroutine != null)
+        {
+            StopCoroutine(m_CoyoteCoroutine);
+            m_CoyoteCoroutine = null;
+        }
+        if (m_RB.linearVelocityX < m_MoveSpeed) { m_RB.linearVelocityX = 0; }
+        if (m_AntiGravCheckCoroutine != null)
+        {
+            StopCoroutine(m_AntiGravCheckCoroutine);
+            m_AntiGravCheckCoroutine = null;
+        }
+        if (m_FallingCoroutine != null)
+        {
+            StopCoroutine(m_FallingCoroutine);
+            m_FallingCoroutine = null;
+        }
+    }
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (m_GroundSensor.HasDetectedHit())
+        if (m_GroundSensor.RunCheck())
         {
-            m_JumpCount = 0;
-			if(m_FallThroughCoroutine != null && m_PlatformCollision != null)
-			{
-				m_PlatformCollision.gameObject.GetComponent<PlatformEffector2D>().rotationalOffset = 0f;
-				StopCoroutine (m_FallThroughCoroutine);
-				m_FallThroughCoroutine = null;
-			}
-
-            if (m_CoyoteCoroutine != null)
-            {
-                StopCoroutine(m_CoyoteCoroutine);
-                m_CoyoteCoroutine = null;
-            }
-            if (m_RB.linearVelocityX < m_MoveSpeed) { m_RB.linearVelocityX = 0; }
-            if (m_AntiGravCheckCoroutine != null)
-            {
-                StopCoroutine(m_AntiGravCheckCoroutine);
-                m_AntiGravCheckCoroutine = null;
-            }
-            if (m_FallingCoroutine != null)
-            {
-                StopCoroutine(m_FallingCoroutine);
-                m_FallingCoroutine = null;
-            }
-
+            ResetConditions();
         }
     }
 
@@ -293,7 +302,7 @@ public class CharacterMovement : MonoBehaviour
         if (m_RB.linearVelocityY < 0)
         {
 
-            if (!m_GroundSensor.HasDetectedHit() && m_CoyoteCoroutine == null)
+            if (!m_GroundSensor.RunCheck() && m_CoyoteCoroutine == null && m_CanCoyote)
             {
                 m_CoyoteTimeCountDown = m_CoyoteTime;
                 m_CoyoteCoroutine = StartCoroutine(C_CoyoteTimeReduction());
@@ -307,7 +316,7 @@ public class CharacterMovement : MonoBehaviour
         while (m_CrouchBufferCountDown > 0f)
         {
             m_CrouchBufferCountDown -= Time.deltaTime;
-            if (m_GroundSensor.HasDetectedHit())
+            if (m_GroundSensor.RunCheck())
             {
 				m_RB.linearVelocityY = 0f;
                 Crouch();
@@ -342,8 +351,9 @@ public class CharacterMovement : MonoBehaviour
         while (m_JumpBufferCountDown > 0f)
         {
             m_JumpBufferCountDown -= Time.deltaTime;
-            if (m_GroundSensor.HasDetectedHit())
+            if (m_GroundSensor.RunCheck())
             {
+				ResetConditions();
 				Jump();
             }
             yield return new WaitForFixedUpdate();
@@ -354,7 +364,7 @@ public class CharacterMovement : MonoBehaviour
 	IEnumerator C_AntiGravApex()
 	{
 		yield return new WaitForSeconds(0.1f);
-		while(!m_GroundSensor.HasDetectedHit())
+		while(!m_GroundSensor.RunCheck())
 		{
 			if(m_RB.linearVelocityY > -1f && m_RB.linearVelocityY < 1f)
 			{
@@ -375,7 +385,7 @@ public class CharacterMovement : MonoBehaviour
 	}
 	IEnumerator C_FallingCoroutine()
 	{
-        while (!m_GroundSensor.HasDetectedHit())
+        while (!m_GroundSensor.RunCheck())
 		{
 			if(m_RB.linearVelocityY < -m_FallSpeedCap)
 			{
@@ -396,8 +406,8 @@ public class CharacterMovement : MonoBehaviour
         yield break;
     }
 
-    private void OnDrawGizmos()
+    /*private void OnDrawGizmos()
     {
 		Debug.DrawRay(new Vector3(gameObject.transform.position.x+(m_CrouchLimit*m_MoveDir), gameObject.transform.position.y, gameObject.transform.position.z), new Vector2(1f * m_MoveDir, -1), Color.cyan);
-    }
+    }*/
 }
