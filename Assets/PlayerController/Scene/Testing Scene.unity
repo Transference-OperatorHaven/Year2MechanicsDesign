@@ -3167,6 +3167,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 929667974029550097, guid: 3357c003e0755d64c8b53ac23d3acd15, type: 3}
+      propertyPath: m_CoyoteTime
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 929667974029550097, guid: 3357c003e0755d64c8b53ac23d3acd15, type: 3}
       propertyPath: m_CrouchLimit
       value: 0.25
       objectReference: {fileID: 0}
@@ -3217,6 +3221,10 @@ PrefabInstance:
     - target: {fileID: 2938755533799335079, guid: 3357c003e0755d64c8b53ac23d3acd15, type: 3}
       propertyPath: m_LayerMask.m_Bits
       value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2938755533799335079, guid: 3357c003e0755d64c8b53ac23d3acd15, type: 3}
+      propertyPath: m_SensorLocalVector.y
+      value: -0.01
       objectReference: {fileID: 0}
     - target: {fileID: 3600401525870630746, guid: 3357c003e0755d64c8b53ac23d3acd15, type: 3}
       propertyPath: m_LocalPosition.x
