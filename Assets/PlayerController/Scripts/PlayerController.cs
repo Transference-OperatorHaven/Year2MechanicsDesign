@@ -67,7 +67,6 @@ public class PlayerController : MonoBehaviour
 		float inMove = context.ReadValue<float>();
 
 		m_InMoveActive = true;
-
 		if(m_MoveCoroutine == null)
 		{
 			m_MoveCoroutine = StartCoroutine(C_MoveUpdate(inMove));
@@ -81,6 +80,7 @@ public class PlayerController : MonoBehaviour
 			StopCoroutine(m_MoveCoroutine);
 			m_MoveCoroutine = null;
 			m_Movement.SetInMove(0f);
+
 		}
 	}
 

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -16,7 +17,10 @@ public class CharacterMovement : MonoBehaviour
 	[SerializeField] private float m_JumpStrength;
 	[SerializeField] private int m_totalJumps;
 	[SerializeField] private int m_JumpCount;
-	[Header("Fall Through Semi Solids")]
+	private bool m_Jumping;
+	[SerializeField] private float m_JumpCancelVelocityThreshold;
+	[SerializeField] private float m_JumpCancelGravityAlter;
+    [Header("Fall Through Semi Solids")]
 	private Coroutine m_FallThroughCoroutine;
 	private Collider2D m_PlatformCollision;
 	
@@ -30,6 +34,8 @@ public class CharacterMovement : MonoBehaviour
 	private bool m_CrouchCheck;
 	[SerializeField] private float m_CrouchLimit;
     private SpriteRenderer m_SpriteRenderer;
+	
+
     [Header("Crouch Buffer")]
     [SerializeField] private float m_CrouchBufferTime;
     private float m_CrouchBufferCountDown;
@@ -64,23 +70,28 @@ public class CharacterMovement : MonoBehaviour
 		Debug.Assert(m_GroundSensor != null);
 		m_MoveSpeed = m_MoveSpeedBase;
 	}
+    #region Functions
 
-	public void DebugCurrentCollider()
+    public void DebugCurrentCollider()
 	{
 		Debug.Log(m_GroundSensor.GetCollider().gameObject.name);
-	}
+        List<ContactPoint2D> contacts = new List<ContactPoint2D>();
+        m_Collider.GetContacts(contacts);
+        Debug.Log("seperation is : " + contacts[0].separation);
+		m_RB.linearVelocityX = 2.5f;
+    }
 
 	private void Jump()
 	{
-		if (m_RB.linearVelocityY + m_JumpStrength <= m_JumpStrength*1.5)
+		List<ContactPoint2D> contacts = new List<ContactPoint2D>();
+		m_Collider.GetContacts(contacts);
+
+        if (m_RB.linearVelocityY + m_JumpStrength <= m_JumpStrength*1.5 && (contacts[0].separation > -0.05 && contacts != null))
 		{
+			ResetConditions();
 			CancelCrouch();
 			m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
 			m_JumpCount++;
-			if(m_JumpBufferCountDown > 0)
-			{
-				JumpCancel();
-			}
 			m_JumpBufferCountDown = 0f;
 			if (m_AntiGravCheckCoroutine == null)
 			{
@@ -92,29 +103,27 @@ public class CharacterMovement : MonoBehaviour
 				StopCoroutine(m_JumpBufferCoroutine);
 				m_JumpBufferCoroutine = null;
 			}
+			if (!m_Jumping) { JumpCancel(); }
 		}
     }
 
 	public void JumpCancel()
 	{
-        if (!m_GroundSensor.RunCheck() || (m_GroundSensor.GetCollider() != null && !m_Collider.IsTouching(m_GroundSensor.GetCollider())))
-        {
-            if (m_AntiGravCheckCoroutine != null)
-            {
-                StopCoroutine(m_AntiGravCheckCoroutine);
-                m_AntiGravCheckCoroutine = null;
-            }
-            if (m_RB.linearVelocityY > 0f)
-            {
-                m_RB.linearVelocityY = 0f;
-            }
-            if (m_FallingCoroutine == null)
-            {
-                m_FallingCoroutine = StartCoroutine(C_FallingCoroutine());
-            }
-
-        }
-    }
+		m_RB.gravityScale = m_JumpCancelGravityAlter;
+		if (m_AntiGravCheckCoroutine != null)
+		{
+			StopCoroutine(m_AntiGravCheckCoroutine);
+			m_AntiGravCheckCoroutine = null;
+		}
+		if (m_RB.linearVelocityY > m_JumpCancelVelocityThreshold)
+		{
+			m_RB.linearVelocityY = m_JumpCancelVelocityThreshold;
+		}
+		if (m_FallingCoroutine == null)
+		{
+			m_FallingCoroutine = StartCoroutine(C_FallingCoroutine());
+		}
+	}
 
     public void SetInMove(float newMove)
 
@@ -147,15 +156,11 @@ public class CharacterMovement : MonoBehaviour
 
     }
 
-	IEnumerator C_StopFallDown()
-	{
-		yield return new WaitForSeconds(0.4f);
-        m_PlatformCollision.GetComponent<PlatformEffector2D>().rotationalOffset = 0;
-        m_PlatformCollision = null;
-    }
+	
 
 	public void StartJump()
 	{
+		m_Jumping = true;
 		if (m_JumpCount < m_totalJumps)
 		{
 			if (m_GroundSensor.HasDetectedHit() || m_CoyoteTimeCountDown > 0f)
@@ -183,6 +188,7 @@ public class CharacterMovement : MonoBehaviour
 
 	public void StopJump() 
 	{
+		m_Jumping = false;
 		JumpCancel();
         
 	}
@@ -260,6 +266,7 @@ public class CharacterMovement : MonoBehaviour
 
 	private void ResetConditions()
 	{
+		m_RB.gravityScale = 1;
         m_JumpCount = 0;
 		m_CanCoyote = true;
 		m_CoyoteTimeCountDown = 0;
@@ -309,6 +316,15 @@ public class CharacterMovement : MonoBehaviour
             }
         }
 
+    }
+    #endregion
+    #region Coroutines
+
+    IEnumerator C_StopFallDown()
+    {
+        yield return new WaitForSeconds(0.4f);
+        if (m_PlatformCollision != null) m_PlatformCollision.GetComponent<PlatformEffector2D>().rotationalOffset = 0;
+        m_PlatformCollision = null;
     }
 
     IEnumerator C_CrouchBuffer()
@@ -361,6 +377,7 @@ public class CharacterMovement : MonoBehaviour
         yield break;
     }
 
+
 	IEnumerator C_AntiGravApex()
 	{
 		yield return new WaitForSeconds(0.1f);
@@ -410,4 +427,5 @@ public class CharacterMovement : MonoBehaviour
     {
 		Debug.DrawRay(new Vector3(gameObject.transform.position.x+(m_CrouchLimit*m_MoveDir), gameObject.transform.position.y, gameObject.transform.position.z), new Vector2(1f * m_MoveDir, -1), Color.cyan);
     }*/
+    #endregion
 }
