@@ -18,7 +18,6 @@ public class StatefulRaycastSensor2D: MonoBehaviour
 	//tracker fields for realtime gathered data
 	private float m_TimeSinceInterval;
     [SerializeField] private RaycastHit2D m_HitInfo;
-	[SerializeField] private GameObject m_HitGO;
 
 	//Always use awake to set up elements within this class - Start is used for second stage initialisation if needed (registering other classes)
 	private void Awake()

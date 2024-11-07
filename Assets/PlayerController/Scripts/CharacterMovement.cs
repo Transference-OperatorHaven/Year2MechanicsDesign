@@ -31,7 +31,8 @@ public class CharacterMovement : MonoBehaviour
 	private float m_LockedXPosition;
 	private float m_TempMoveSpeed;
     private Coroutine m_CrouchCoroutine;
-	private bool m_CrouchCheck;
+	private Coroutine m_CrouchUndoCoroutine;
+    public bool m_CrouchCheck;
 	[SerializeField] private float m_CrouchLimit;
     private SpriteRenderer m_SpriteRenderer;
 	
@@ -81,29 +82,32 @@ public class CharacterMovement : MonoBehaviour
 		m_RB.linearVelocityX = 2.5f;
     }
 
-	private void Jump()
+	private void Jump() // Function that makes the player jump
 	{
 		List<ContactPoint2D> contacts = new List<ContactPoint2D>();
 		m_Collider.GetContacts(contacts);
 
-        if (m_RB.linearVelocityY + m_JumpStrength <= m_JumpStrength*1.5 && (contacts[0].separation > -0.05 && contacts != null))
+		if (m_RB.linearVelocityY + m_JumpStrength <= m_JumpStrength * 1.5)
 		{
-			ResetConditions();
-			CancelCrouch();
-			m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
-			m_JumpCount++;
-			m_JumpBufferCountDown = 0f;
-			if (m_AntiGravCheckCoroutine == null)
+			if (m_CoyoteTimeCountDown > 0f || (contacts != null && contacts[0].separation > -0.05))
 			{
-				m_AntiGravCountDown = m_AntiGravTimer;
-				m_AntiGravCheckCoroutine = StartCoroutine(C_AntiGravApex());
+				ResetConditions();
+				CancelCrouch();
+				m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
+				m_JumpCount++;
+				m_JumpBufferCountDown = 0f;
+				if (m_AntiGravCheckCoroutine == null)
+				{
+					m_AntiGravCountDown = m_AntiGravTimer;
+					m_AntiGravCheckCoroutine = StartCoroutine(C_AntiGravApex());
+				}
+				if (m_JumpBufferCoroutine != null)
+				{
+					StopCoroutine(m_JumpBufferCoroutine);
+					m_JumpBufferCoroutine = null;
+				}
+				if (!m_Jumping) { JumpCancel(); }
 			}
-			if (m_JumpBufferCoroutine != null)
-			{
-				StopCoroutine(m_JumpBufferCoroutine);
-				m_JumpBufferCoroutine = null;
-			}
-			if (!m_Jumping) { JumpCancel(); }
 		}
     }
 
@@ -158,8 +162,9 @@ public class CharacterMovement : MonoBehaviour
 
 	
 
-	public void StartJump()
+	public void StartJump() // function called by keyboard input
 	{
+		if (m_CrouchCheck) { return; }
 		m_Jumping = true;
 		if (m_JumpCount < m_totalJumps)
 		{
@@ -193,13 +198,38 @@ public class CharacterMovement : MonoBehaviour
         
 	}
 
-	private void CancelCrouch()
+    private void Crouch()
+    {
+        if (m_CrouchCoroutine == null)
+        {
+            m_Collider.direction = CapsuleDirection2D.Horizontal;
+            m_Collider.size = new Vector2(1, 0.5f);
+            m_Collider.transform.localPosition = new Vector3(0, 0.25f, 0);
+            m_SpriteRenderer.color = Color.blue;
+			m_SpriteRenderer.transform.localScale = new Vector3(1, 0.5f, 1);
+			m_SpriteRenderer.transform.localPosition = new Vector3(0, 0.5f, 0);
+            m_CrouchCheck = true;
+            m_MoveSpeed /= m_CrouchMoveSpeedMult;
+            m_TempMoveSpeed = m_MoveSpeed;
+            m_CrouchCoroutine = StartCoroutine(C_CrouchCoroutine());
+            if (m_CrouchBufferCoroutine != null)
+            {
+                StopCoroutine(m_CrouchBufferCoroutine);
+                m_CrouchBufferCoroutine = null;
+            }
+        }
+    }
+
+    private void CancelCrouch()
 	{
         if (m_CrouchCoroutine != null)
         {
-            m_SpriteRenderer.gameObject.transform.localScale = new Vector3(1, 1, 1);
-			m_SpriteRenderer.gameObject.transform.localPosition = new Vector3(0, 1, 0);
-			m_SpriteRenderer.color = Color.red;
+            m_Collider.direction = CapsuleDirection2D.Vertical;
+            m_Collider.size = new Vector2(1, 2);
+            m_Collider.transform.localPosition = new Vector3(0, 1, 0);
+            m_SpriteRenderer.color = Color.red;
+			m_SpriteRenderer.transform.localScale = Vector3.one;
+            m_SpriteRenderer.transform.localPosition = new Vector3(0, 1f, 0);
             StopCoroutine(m_CrouchCoroutine);
             m_CrouchCoroutine = null;
 			if(m_MoveSpeed == 0f)
@@ -215,24 +245,7 @@ public class CharacterMovement : MonoBehaviour
         }
     }
 
-    private void Crouch()
-    {
-        if (m_CrouchCoroutine == null)
-        {
-			m_SpriteRenderer.gameObject.transform.localScale = new Vector3(1, 0.75f, 1);
-            m_SpriteRenderer.gameObject.transform.localPosition = new Vector3(0, 0.75f, 0);
-			m_SpriteRenderer.color = Color.blue;
-            m_CrouchCheck = true;
-            m_MoveSpeed /= m_CrouchMoveSpeedMult;
-            m_TempMoveSpeed = m_MoveSpeed;
-            m_CrouchCoroutine = StartCoroutine(C_CrouchCoroutine());
-            if (m_CrouchBufferCoroutine != null)
-            {
-                StopCoroutine(m_CrouchBufferCoroutine);
-                m_CrouchBufferCoroutine = null;
-            }
-        }
-    }
+    
 
     public void StartCrouch()
 	{
@@ -261,7 +274,11 @@ public class CharacterMovement : MonoBehaviour
 
 	public void StopCrouch()
 	{
-		CancelCrouch();
+		
+		RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.up, 2, m_GroundSensor.GetLayerMask());
+		if (hit) { m_CrouchUndoCoroutine = StartCoroutine(C_CrouchUndo()); }
+		else { CancelCrouch(); }
+
 	}
 
 	private void ResetConditions()
@@ -299,6 +316,7 @@ public class CharacterMovement : MonoBehaviour
         if (m_GroundSensor.RunCheck())
         {
             ResetConditions();
+            
         }
     }
 
@@ -360,6 +378,16 @@ public class CharacterMovement : MonoBehaviour
 			yield return null;
 		}
 		
+	}
+
+	IEnumerator C_CrouchUndo()
+	{
+		while(Physics2D.Raycast(transform.position, Vector2.up, 2, m_GroundSensor.GetLayerMask()))
+		{
+			yield return null;
+		}
+		CancelCrouch();
+		yield break;
 	}
 
 	IEnumerator C_JumpBuffer()
