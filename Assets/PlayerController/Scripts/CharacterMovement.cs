@@ -94,8 +94,8 @@ public class CharacterMovement : MonoBehaviour
 	
 	public void Hit(GameObject attacker, float Damage)
 	{
-		m_ScreenMoveVector = (attacker.transform.position - gameObject.transform.position) * Damage;
-		OnHit();
+		m_ScreenMoveVector = (transform.position - attacker.transform.position) * Damage;
+		if (OnHit != null){ OnHit(); }
 	}
 	
 	public Vector2 GetScreenShakeStrength()
@@ -124,7 +124,7 @@ public class CharacterMovement : MonoBehaviour
 				ResetConditions();
 				CancelCrouch();
 				m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
-				OnJump();
+				if (OnJump != null) { OnJump(); }
 				m_JumpCount++;
 				m_JumpBufferCountDown = 0f;
 				if (m_AntiGravCheckCoroutine == null)

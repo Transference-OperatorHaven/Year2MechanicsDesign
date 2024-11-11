@@ -73,14 +73,14 @@ public class PlayerFX : MonoBehaviour
 
     private void FXPoof()
     {
-        Debug.Log("FX Poof");
         m_PlayerParticles.Play();
     }
 
     private void ScreenShake()
     {
         Vector2 shakeVector = m_CharMov.GetScreenShakeStrength();
-        if (shakeVector.magnitude > 7)
+        Debug.Log(shakeVector.magnitude);
+        if (shakeVector.magnitude >= 10)
         {
             if (m_ShakeCoroutine == null)
             {
@@ -98,7 +98,6 @@ public class PlayerFX : MonoBehaviour
 
     private void PlaySound(AudioClip sfx)
     {
-        Debug.Log("Play Sound");
         m_Audio.PlayOneShot(sfx);
     }
 
@@ -108,7 +107,7 @@ public class PlayerFX : MonoBehaviour
         m_ShakeTimer = m_ShakeDuration;
         while(m_ShakeTimer > 0)
         {
-            Camera.main.transform.localPosition = m_initialPos + (shakeDirection * Random.Range(0f, 1f) * m_ShakeStrength);
+            Camera.main.transform.localPosition = m_initialPos + ((shakeDirection/200) * Random.Range(0f, 2f) * m_ShakeStrength);
             Camera.main.transform.localPosition = new Vector3(Camera.main.transform.localPosition.x, Camera.main.transform.localPosition.y, -10f);
 
             m_ShakeTimer -= Time.deltaTime * m_ShakeDamping;

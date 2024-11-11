@@ -118,7 +118,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.2
+      scalar: 0.1
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -666,11 +666,11 @@ ParticleSystem:
   ShapeModule:
     serializedVersion: 6
     enabled: 1
-    type: 4
-    angle: 50.93
+    type: 2
+    angle: 85.9
     length: 5
     boxThickness: {x: 0, y: 0, z: 0}
-    radiusThickness: 1
+    radiusThickness: 0.54
     donutRadius: 0.2
     m_Position: {x: 0, y: 0, z: 0}
     m_Rotation: {x: -90, y: 0, z: 0}
@@ -753,7 +753,7 @@ ParticleSystem:
     sphericalDirectionAmount: 0
     randomPositionAmount: 0
     radius:
-      value: 0.4
+      value: 2.3
       mode: 0
       spread: 0
       speed:
@@ -1369,7 +1369,7 @@ ParticleSystem:
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
-        key1: {r: 1, g: 1, b: 1, a: 0.9512296}
+        key1: {r: 1, g: 1, b: 1, a: 0}
         key2: {r: 0, g: 0, b: 0, a: 0}
         key3: {r: 0, g: 0, b: 0, a: 0}
         key4: {r: 0, g: 0, b: 0, a: 0}
@@ -1385,7 +1385,7 @@ ParticleSystem:
         ctime6: 0
         ctime7: 0
         atime0: 0
-        atime1: 49151
+        atime1: 65535
         atime2: 65535
         atime3: 65535
         atime4: 0
@@ -1395,7 +1395,7 @@ ParticleSystem:
         m_Mode: 0
         m_ColorSpace: 0
         m_NumColorKeys: 2
-        m_NumAlphaKeys: 3
+        m_NumAlphaKeys: 2
       minGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -2644,17 +2644,17 @@ ParticleSystem:
         - serializedVersion: 3
           time: 0
           value: 1
-          inSlope: -2
-          outSlope: -2
+          inSlope: 0
+          outSlope: 0
           tangentMode: 0
           weightedMode: 0
           inWeight: 0
           outWeight: 0
         - serializedVersion: 3
-          time: 0.25000566
+          time: 1
           value: 0
-          inSlope: 0
-          outSlope: 0
+          inSlope: -2
+          outSlope: -2
           tangentMode: 0
           weightedMode: 0
           inWeight: 0
@@ -5002,6 +5002,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2184399b1f42f94b977318398b9f30a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_JumpSFX: {fileID: 0}
-  m_LandSFX: {fileID: 0}
-  m_HitSFX: {fileID: 0}
+  m_JumpSFX: {fileID: 8300000, guid: aca202f588c3de740a4d41818230f1eb, type: 3}
+  m_LandSFX: {fileID: 8300000, guid: 28e646755e6317b4c88172a8bbdcd1ec, type: 3}
+  m_HitSFX: {fileID: 8300000, guid: 1eab1def11cc5dc48a9517ee7c1542d2, type: 3}
+  m_ShakeDuration: 0.05
+  m_ShakeStrength: 4
+  m_ShakeDamping: 0.5
