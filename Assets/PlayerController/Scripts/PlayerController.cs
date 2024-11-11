@@ -125,9 +125,11 @@ public class PlayerController : MonoBehaviour
 
 	
 
-	void Handle_HealthDamaged(float p_CurrentHealth, float p_MaxHealth, float p_Change)
+	void Handle_HealthDamaged(float p_CurrentHealth, float p_MaxHealth, float p_Change, GameObject attacker)
 	{
 		Debug.Log($"Current health is: {p_CurrentHealth} out of: {p_MaxHealth} and the damaged taken was: {p_Change}");
+
+		m_Movement.Hit(attacker, p_Change); 
 	}
 
 	void Handle_OnDead(MonoBehaviour p_Attacker)

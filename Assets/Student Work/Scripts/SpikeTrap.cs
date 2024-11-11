@@ -9,6 +9,5 @@ public class SpikeTrap : MonoBehaviour
         IDamagable victim = collision.GetComponentInParent<IDamagable>();
         if(victim == null ) { return; }
         victim.ApplyDamage(m_Damage, this);
-        victim.ApplyDamage(m_Damage, this);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,8 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class CharacterMovement : MonoBehaviour
 {
-	private Rigidbody2D m_RB;
+    #region Variables
+    private Rigidbody2D m_RB;
 	private CapsuleCollider2D m_Collider;
 
 	[SerializeField] private StatefulRaycastSensor2D m_GroundSensor;
@@ -63,15 +65,43 @@ public class CharacterMovement : MonoBehaviour
 	private float m_CoyoteTimeCountDown;
 	private Coroutine m_CoyoteCoroutine;
 
+	[Header("Assignment 2 Stuff")]
+	private PlayerFX m_PlayerFX;
+	public static CharacterMovement m_cmEvent;
+	public Vector2 m_GroundVelocity;
+	Vector2 m_ScreenMoveVector;
+    #endregion
+
     private void Awake()
 	{
-		m_RB = GetComponent<Rigidbody2D>();
+		m_PlayerFX = GetComponentInChildren<PlayerFX>();
+        if (m_PlayerFX != null) { m_cmEvent = this; Debug.Log("Player FX Loaded"); }
+        m_RB = GetComponent<Rigidbody2D>();
 		m_Collider = GetComponentInChildren<CapsuleCollider2D>();
 		m_SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
 		Debug.Assert(m_GroundSensor != null);
 		m_MoveSpeed = m_MoveSpeedBase;
 	}
+
+    #region Events
+    public event Action OnLand;
+    public event Action OnJump;
+	public event Action OnHit;
+	public event Action OnFall;
+    #endregion
+
     #region Functions
+	
+	public void Hit(GameObject attacker, float Damage)
+	{
+		m_ScreenMoveVector = (attacker.transform.position - gameObject.transform.position) * Damage;
+		OnHit();
+	}
+	
+	public Vector2 GetScreenShakeStrength()
+	{
+		return m_ScreenMoveVector;
+	}
 
     public void DebugCurrentCollider()
 	{
@@ -94,6 +124,7 @@ public class CharacterMovement : MonoBehaviour
 				ResetConditions();
 				CancelCrouch();
 				m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
+				OnJump();
 				m_JumpCount++;
 				m_JumpBufferCountDown = 0f;
 				if (m_AntiGravCheckCoroutine == null)
@@ -125,6 +156,7 @@ public class CharacterMovement : MonoBehaviour
 		}
 		if (m_FallingCoroutine == null)
 		{
+			if (OnFall != null) { OnFall(); }
 			m_FallingCoroutine = StartCoroutine(C_FallingCoroutine());
 		}
 	}
@@ -159,8 +191,6 @@ public class CharacterMovement : MonoBehaviour
         }
 
     }
-
-	
 
 	public void StartJump() // function called by keyboard input
 	{
@@ -245,8 +275,6 @@ public class CharacterMovement : MonoBehaviour
         }
     }
 
-    
-
     public void StartCrouch()
 	{
 
@@ -315,7 +343,9 @@ public class CharacterMovement : MonoBehaviour
     {
         if (m_GroundSensor.RunCheck())
         {
+            m_ScreenMoveVector = collision.relativeVelocity;
             ResetConditions();
+			if(OnLand != null) { OnLand(); }
             
         }
     }
@@ -326,6 +356,7 @@ public class CharacterMovement : MonoBehaviour
 
         if (m_RB.linearVelocityY < 0)
         {
+			
 
             if (!m_GroundSensor.RunCheck() && m_CoyoteCoroutine == null && m_CanCoyote)
             {
@@ -336,6 +367,7 @@ public class CharacterMovement : MonoBehaviour
 
     }
     #endregion
+    
     #region Coroutines
 
     IEnumerator C_StopFallDown()

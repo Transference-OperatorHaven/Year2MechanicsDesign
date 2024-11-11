@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 public class HealthComponent : MonoBehaviour, IDamagable
 {
 
-    public event Action<float, float, float> onDamaged;
+    public event Action<float, float, float, GameObject> onDamaged;
     public event Action<MonoBehaviour> onDead;
 
     [SerializeField] private float m_MaxHealth;
@@ -25,7 +25,7 @@ public class HealthComponent : MonoBehaviour, IDamagable
 
     public void ApplyDamage(float damage, MonoBehaviour attacker)
     {
-        while (m_Invulernable) return;
+        if (m_Invulernable) return;
         if(m_InvulCoroutine != null)
         {
             StopCoroutine(m_InvulCoroutine);
@@ -34,7 +34,7 @@ public class HealthComponent : MonoBehaviour, IDamagable
         float change = Mathf.Min(m_CurrentHealth, damage);
         m_CurrentHealth -= change;
 
-        onDamaged?.Invoke(m_CurrentHealth, m_MaxHealth, change);
+        onDamaged?.Invoke(m_CurrentHealth, m_MaxHealth, change, attacker.gameObject);
         if (m_CurrentHealth <= 0) { onDead?.Invoke(attacker); }
         if (m_InvulCoroutine == null)
         {
