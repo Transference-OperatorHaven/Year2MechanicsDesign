@@ -344,8 +344,9 @@ public class CharacterMovement : MonoBehaviour
         if (m_GroundSensor.RunCheck())
         {
             m_ScreenMoveVector = collision.relativeVelocity;
+            if (OnLand != null) { OnLand(); }
             ResetConditions();
-			if(OnLand != null) { OnLand(); }
+			
             
         }
     }
@@ -356,13 +357,21 @@ public class CharacterMovement : MonoBehaviour
 
         if (m_RB.linearVelocityY < 0)
         {
-			
 
-            if (!m_GroundSensor.RunCheck() && m_CoyoteCoroutine == null && m_CanCoyote)
-            {
-                m_CoyoteTimeCountDown = m_CoyoteTime;
-                m_CoyoteCoroutine = StartCoroutine(C_CoyoteTimeReduction());
+			if (!m_GroundSensor.RunCheck())
+			{
+                if (m_FallingCoroutine == null)
+                {
+                    if (OnFall != null) { OnFall(); }
+                    m_FallingCoroutine = StartCoroutine(C_FallingCoroutine());
+                }
+                if (m_CoyoteCoroutine == null && m_CanCoyote)
+                {
+                    m_CoyoteTimeCountDown = m_CoyoteTime;
+                    m_CoyoteCoroutine = StartCoroutine(C_CoyoteTimeReduction());
+                }
             }
+            
         }
 
     }
@@ -414,7 +423,7 @@ public class CharacterMovement : MonoBehaviour
 
 	IEnumerator C_CrouchUndo()
 	{
-		while(Physics2D.Raycast(transform.position, Vector2.up, 2, m_GroundSensor.GetLayerMask()))
+		while(Physics2D.Raycast(transform.position, Vector2.up, 1.9f, m_GroundSensor.GetLayerMask()))
 		{
 			yield return null;
 		}
@@ -462,6 +471,7 @@ public class CharacterMovement : MonoBehaviour
 	}
 	IEnumerator C_FallingCoroutine()
 	{
+		m_RB.gravityScale = m_JumpCancelGravityAlter;
         while (!m_GroundSensor.RunCheck())
 		{
 			if(m_RB.linearVelocityY < -m_FallSpeedCap)

@@ -16,6 +16,7 @@ public class PlayerFX : MonoBehaviour
     [SerializeField] AudioClip m_LandSFX;
     [SerializeField] AudioClip m_HitSFX;
 
+    [SerializeField] float m_shakeThreshold;
     [SerializeField] float m_ShakeDuration = 0f;
     float m_ShakeTimer = 0f;
     [SerializeField] float m_ShakeStrength = 0.7f;
@@ -23,7 +24,7 @@ public class PlayerFX : MonoBehaviour
     Vector2 m_initialPos;
     Coroutine m_ShakeCoroutine;
 
-    bool m_landing;
+    bool m_landing = false;
 
     private void Start()
     {
@@ -79,8 +80,7 @@ public class PlayerFX : MonoBehaviour
     private void ScreenShake()
     {
         Vector2 shakeVector = m_CharMov.GetScreenShakeStrength();
-        Debug.Log(shakeVector.magnitude);
-        if (shakeVector.magnitude >= 10)
+        if (shakeVector.magnitude >= m_shakeThreshold)
         {
             if (m_ShakeCoroutine == null)
             {

@@ -3,6 +3,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 [RequireComponent (typeof(CharacterMovement))]
 public class PlayerController : MonoBehaviour
@@ -135,5 +136,6 @@ public class PlayerController : MonoBehaviour
 	void Handle_OnDead(MonoBehaviour p_Attacker)
 	{
 		Debug.Log($"Died and the attacker was: {p_Attacker.gameObject.name}");
+		SceneManager.LoadScene("Testing Scene", LoadSceneMode.Single);
 	}
 }
