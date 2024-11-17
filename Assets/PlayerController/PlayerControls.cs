@@ -71,6 +71,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Switch Colour"",
+                    ""type"": ""Button"",
+                    ""id"": ""c29295ba-1d38-428c-bf6b-685112a8a1b2"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -227,6 +236,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""[PH] Log Current Collider"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d1dbac54-0e4e-4bd4-a688-599d7f64945f"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Switch Colour"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -240,6 +260,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Default_Crouch = m_Default.FindAction("Crouch", throwIfNotFound: true);
         m_Default_MoveDown = m_Default.FindAction("MoveDown", throwIfNotFound: true);
         m_Default_PHLogCurrentCollider = m_Default.FindAction("[PH] Log Current Collider", throwIfNotFound: true);
+        m_Default_SwitchColour = m_Default.FindAction("Switch Colour", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -311,6 +332,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Default_Crouch;
     private readonly InputAction m_Default_MoveDown;
     private readonly InputAction m_Default_PHLogCurrentCollider;
+    private readonly InputAction m_Default_SwitchColour;
     public struct DefaultActions
     {
         private @PlayerControls m_Wrapper;
@@ -320,6 +342,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public InputAction @Crouch => m_Wrapper.m_Default_Crouch;
         public InputAction @MoveDown => m_Wrapper.m_Default_MoveDown;
         public InputAction @PHLogCurrentCollider => m_Wrapper.m_Default_PHLogCurrentCollider;
+        public InputAction @SwitchColour => m_Wrapper.m_Default_SwitchColour;
         public InputActionMap Get() { return m_Wrapper.m_Default; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -344,6 +367,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @PHLogCurrentCollider.started += instance.OnPHLogCurrentCollider;
             @PHLogCurrentCollider.performed += instance.OnPHLogCurrentCollider;
             @PHLogCurrentCollider.canceled += instance.OnPHLogCurrentCollider;
+            @SwitchColour.started += instance.OnSwitchColour;
+            @SwitchColour.performed += instance.OnSwitchColour;
+            @SwitchColour.canceled += instance.OnSwitchColour;
         }
 
         private void UnregisterCallbacks(IDefaultActions instance)
@@ -363,6 +389,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @PHLogCurrentCollider.started -= instance.OnPHLogCurrentCollider;
             @PHLogCurrentCollider.performed -= instance.OnPHLogCurrentCollider;
             @PHLogCurrentCollider.canceled -= instance.OnPHLogCurrentCollider;
+            @SwitchColour.started -= instance.OnSwitchColour;
+            @SwitchColour.performed -= instance.OnSwitchColour;
+            @SwitchColour.canceled -= instance.OnSwitchColour;
         }
 
         public void RemoveCallbacks(IDefaultActions instance)
@@ -387,5 +416,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         void OnCrouch(InputAction.CallbackContext context);
         void OnMoveDown(InputAction.CallbackContext context);
         void OnPHLogCurrentCollider(InputAction.CallbackContext context);
+        void OnSwitchColour(InputAction.CallbackContext context);
     }
 }

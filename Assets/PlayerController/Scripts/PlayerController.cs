@@ -11,11 +11,13 @@ public class PlayerController : MonoBehaviour
 	private PlayerControls m_ActionMap;
 	private CharacterMovement m_Movement;
 	private HealthComponent m_HealthComponent;
+	private ColourGame m_ColourGame;
 	private bool m_InMoveActive;
 	private Coroutine m_MoveCoroutine;
 
 	private void Awake()
 	{
+		m_ColourGame = GetComponentInChildren<ColourGame>();
 		m_ActionMap = new PlayerControls();
 		m_Movement = GetComponent<CharacterMovement>();
 
@@ -36,6 +38,7 @@ public class PlayerController : MonoBehaviour
 		m_ActionMap.Default.MoveDown.performed += Handle_DownPerformed;
 		m_ActionMap.Default.MoveDown.canceled += Handle_DownCancelled;
         m_ActionMap.Default.PHLogCurrentCollider.performed += Handle_DebugCollider;
+		if(m_ColourGame != null) { m_ActionMap.Default.SwitchColour.performed += Handle_ColourSwitch; }
 
         m_HealthComponent.onDamaged += Handle_HealthDamaged;
 		m_HealthComponent.onDead += Handle_OnDead;
@@ -52,6 +55,7 @@ public class PlayerController : MonoBehaviour
         m_ActionMap.Default.Crouch.canceled -= Handle_CrouchCancelled;
         m_ActionMap.Default.MoveDown.performed -= Handle_DownPerformed;
 		m_ActionMap.Default.PHLogCurrentCollider.performed -= Handle_DebugCollider;
+        if (m_ColourGame != null) { m_ActionMap.Default.SwitchColour.performed -= Handle_ColourSwitch; }
 
         m_HealthComponent.onDamaged -= Handle_HealthDamaged;
         m_HealthComponent.onDead -= Handle_OnDead;
@@ -124,7 +128,10 @@ public class PlayerController : MonoBehaviour
         m_Movement.StopCrouch();
     }
 
-	
+	private void Handle_ColourSwitch(InputAction.CallbackContext context)
+	{
+		m_ColourGame.ChangeColour();
+	}
 
 	void Handle_HealthDamaged(float p_CurrentHealth, float p_MaxHealth, float p_Change, GameObject attacker)
 	{
@@ -138,4 +145,6 @@ public class PlayerController : MonoBehaviour
 		Debug.Log($"Died and the attacker was: {p_Attacker.gameObject.name}");
 		SceneManager.LoadScene("Testing Scene", LoadSceneMode.Single);
 	}
+
+
 }

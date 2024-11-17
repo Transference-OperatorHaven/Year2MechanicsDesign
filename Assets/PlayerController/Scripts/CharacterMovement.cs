@@ -119,25 +119,28 @@ public class CharacterMovement : MonoBehaviour
 
 		if (m_RB.linearVelocityY + m_JumpStrength <= m_JumpStrength * 1.5)
 		{
-			if (m_CoyoteTimeCountDown > 0f || (contacts != null && contacts[0].separation > -0.05))
+			if (contacts.Count != 0)
 			{
-				ResetConditions();
-				CancelCrouch();
-				m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
-				if (OnJump != null) { OnJump(); }
-				m_JumpCount++;
-				m_JumpBufferCountDown = 0f;
-				if (m_AntiGravCheckCoroutine == null)
+				if (m_CoyoteTimeCountDown > 0f || (contacts[0].separation > -0.05))
 				{
-					m_AntiGravCountDown = m_AntiGravTimer;
-					m_AntiGravCheckCoroutine = StartCoroutine(C_AntiGravApex());
+					ResetConditions();
+					CancelCrouch();
+					m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
+					if (OnJump != null) { OnJump(); }
+					m_JumpCount++;
+					m_JumpBufferCountDown = 0f;
+					if (m_AntiGravCheckCoroutine == null)
+					{
+						m_AntiGravCountDown = m_AntiGravTimer;
+						m_AntiGravCheckCoroutine = StartCoroutine(C_AntiGravApex());
+					}
+					if (m_JumpBufferCoroutine != null)
+					{
+						StopCoroutine(m_JumpBufferCoroutine);
+						m_JumpBufferCoroutine = null;
+					}
+					if (!m_Jumping) { JumpCancel(); }
 				}
-				if (m_JumpBufferCoroutine != null)
-				{
-					StopCoroutine(m_JumpBufferCoroutine);
-					m_JumpBufferCoroutine = null;
-				}
-				if (!m_Jumping) { JumpCancel(); }
 			}
 		}
     }
@@ -235,7 +238,6 @@ public class CharacterMovement : MonoBehaviour
             m_Collider.direction = CapsuleDirection2D.Horizontal;
             m_Collider.size = new Vector2(1, 0.5f);
             m_Collider.transform.localPosition = new Vector3(0, 0.25f, 0);
-            m_SpriteRenderer.color = Color.blue;
 			m_SpriteRenderer.transform.localScale = new Vector3(1, 0.5f, 1);
 			m_SpriteRenderer.transform.localPosition = new Vector3(0, 0.5f, 0);
             m_CrouchCheck = true;
@@ -257,7 +259,6 @@ public class CharacterMovement : MonoBehaviour
             m_Collider.direction = CapsuleDirection2D.Vertical;
             m_Collider.size = new Vector2(1, 2);
             m_Collider.transform.localPosition = new Vector3(0, 1, 0);
-            m_SpriteRenderer.color = Color.red;
 			m_SpriteRenderer.transform.localScale = Vector3.one;
             m_SpriteRenderer.transform.localPosition = new Vector3(0, 1f, 0);
             StopCoroutine(m_CrouchCoroutine);
