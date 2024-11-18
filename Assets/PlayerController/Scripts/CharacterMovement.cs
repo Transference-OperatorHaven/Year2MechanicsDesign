@@ -109,7 +109,7 @@ public class CharacterMovement : MonoBehaviour
         List<ContactPoint2D> contacts = new List<ContactPoint2D>();
         m_Collider.GetContacts(contacts);
         Debug.Log("seperation is : " + contacts[0].separation);
-		m_RB.linearVelocityX = 2.5f;
+		Debug.Log(contacts[0].point.y);
     }
 
 	private void Jump() // Function that makes the player jump
@@ -121,7 +121,7 @@ public class CharacterMovement : MonoBehaviour
 		{
 			if (contacts.Count != 0)
 			{
-				if (m_CoyoteTimeCountDown > 0f || (contacts[0].separation > -0.05))
+				if (m_CoyoteTimeCountDown > 0f || (contacts[0].separation > -0.05 || contacts[0].point.y >= transform.position.y + 1))
 				{
 					ResetConditions();
 					CancelCrouch();

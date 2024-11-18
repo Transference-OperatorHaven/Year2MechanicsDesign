@@ -130,7 +130,7 @@ public class PlayerController : MonoBehaviour
 
 	private void Handle_ColourSwitch(InputAction.CallbackContext context)
 	{
-		m_ColourGame.ChangeColour();
+		m_ColourGame.ChangeColourInput();
 	}
 
 	void Handle_HealthDamaged(float p_CurrentHealth, float p_MaxHealth, float p_Change, GameObject attacker)
@@ -142,8 +142,9 @@ public class PlayerController : MonoBehaviour
 
 	void Handle_OnDead(MonoBehaviour p_Attacker)
 	{
+		Scene scene = SceneManager.GetActiveScene();
 		Debug.Log($"Died and the attacker was: {p_Attacker.gameObject.name}");
-		SceneManager.LoadScene("Testing Scene", LoadSceneMode.Single);
+		SceneManager.LoadScene(scene.name, LoadSceneMode.Single);
 	}
 
 
