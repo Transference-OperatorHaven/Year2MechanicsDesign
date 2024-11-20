@@ -42,15 +42,6 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "[PH] Log Current Collider",
-                    "type": "Button",
-                    "id": "d41abc97-8550-4171-8400-825b60e59a1b",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Switch Colour",
                     "type": "Button",
                     "id": "c29295ba-1d38-428c-bf6b-685112a8a1b2",
@@ -201,17 +192,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "MoveDown",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "5f7f29b7-bb16-4761-946e-5045de19a956",
-                    "path": "<Keyboard>/numpadMinus",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "[PH] Log Current Collider",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

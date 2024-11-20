@@ -22,7 +22,7 @@ public class PlayerController : MonoBehaviour
 		m_Movement = GetComponent<CharacterMovement>();
 
 		m_HealthComponent = GetComponent<HealthComponent>();
-		if(m_HealthComponent == null) { Debug.Log("No Health Component"); }
+		if(m_HealthComponent == null) { Debug.LogWarning("No Health Component"); }
 	}
 
 	private void OnEnable()
@@ -37,7 +37,6 @@ public class PlayerController : MonoBehaviour
 		m_ActionMap.Default.Crouch.canceled += Handle_CrouchCancelled;
 		m_ActionMap.Default.MoveDown.performed += Handle_DownPerformed;
 		m_ActionMap.Default.MoveDown.canceled += Handle_DownCancelled;
-        m_ActionMap.Default.PHLogCurrentCollider.performed += Handle_DebugCollider;
 		if(m_ColourGame != null) { m_ActionMap.Default.SwitchColour.performed += Handle_ColourSwitch; }
 
         m_HealthComponent.onDamaged += Handle_HealthDamaged;
@@ -54,17 +53,11 @@ public class PlayerController : MonoBehaviour
 		m_ActionMap.Default.Jump.canceled -= Handle_JumpCancelled;
         m_ActionMap.Default.Crouch.canceled -= Handle_CrouchCancelled;
         m_ActionMap.Default.MoveDown.performed -= Handle_DownPerformed;
-		m_ActionMap.Default.PHLogCurrentCollider.performed -= Handle_DebugCollider;
         if (m_ColourGame != null) { m_ActionMap.Default.SwitchColour.performed -= Handle_ColourSwitch; }
 
         m_HealthComponent.onDamaged -= Handle_HealthDamaged;
         m_HealthComponent.onDead -= Handle_OnDead;
     }
-
-	private void Handle_DebugCollider(InputAction.CallbackContext context)
-	{
-		m_Movement.DebugCurrentCollider();
-	}
 
 	private void Handle_MovePerformed(InputAction.CallbackContext context)
 	{
@@ -135,16 +128,13 @@ public class PlayerController : MonoBehaviour
 
 	void Handle_HealthDamaged(float p_CurrentHealth, float p_MaxHealth, float p_Change, GameObject attacker)
 	{
-		Debug.Log($"Current health is: {p_CurrentHealth} out of: {p_MaxHealth} and the damaged taken was: {p_Change}");
 
 		m_Movement.Hit(attacker, p_Change); 
 	}
 
 	void Handle_OnDead(MonoBehaviour p_Attacker)
 	{
-		Scene scene = SceneManager.GetActiveScene();
-		Debug.Log($"Died and the attacker was: {p_Attacker.gameObject.name}");
-		SceneManager.LoadScene(scene.name, LoadSceneMode.Single);
+		m_Movement.Death();
 	}
 
 

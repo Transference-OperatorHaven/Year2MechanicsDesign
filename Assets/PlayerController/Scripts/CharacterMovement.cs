@@ -22,12 +22,17 @@ public class CharacterMovement : MonoBehaviour
 	private bool m_Jumping;
 	[SerializeField] private float m_JumpCancelVelocityThreshold;
 	[SerializeField] private float m_JumpCancelGravityAlter;
-    [Header("Fall Through Semi Solids")]
+	
 	private Coroutine m_FallThroughCoroutine;
 	private Collider2D m_PlatformCollision;
+
+	[Header("Respawn Settings")]
+    public Transform m_RespawnPos;
+	[SerializeField] private float m_RespawnTime;
+	private Coroutine m_RespawnCoroutine;
 	
-	
-	[Header("Crouch Settings")]
+
+    [Header("Crouch Settings")]
     [SerializeField] private float m_CrouchLedgeCheckDistance;
     [SerializeField] private float m_CrouchMoveSpeedMult;
 	private float m_LockedXPosition;
@@ -55,27 +60,35 @@ public class CharacterMovement : MonoBehaviour
 	private Coroutine m_JumpBufferCoroutine;
 
 	[Header("Apex Anti-Gravity Settings")]
-	private Coroutine m_AntiGravCheckCoroutine;
+    [SerializeField] private float m_AntiGravTimer;
+    private Coroutine m_AntiGravCheckCoroutine;
 	private float m_AntiGravCountDown;
-	[SerializeField] private float m_AntiGravTimer;
+	
 
 	[Header("Coyote Time Settings")]
-	private bool m_CanCoyote;
     [SerializeField] private float m_CoyoteTime;
+    private bool m_CanCoyote;
 	private float m_CoyoteTimeCountDown;
 	private Coroutine m_CoyoteCoroutine;
 
 	[Header("Assignment 2 Stuff")]
-	private PlayerFX m_PlayerFX;
-	public static CharacterMovement m_cmEvent;
-	public Vector2 m_GroundVelocity;
+    public static CharacterMovement instance;
+    public Vector2 m_GroundVelocity;
+    private PlayerFX m_PlayerFX;
 	Vector2 m_ScreenMoveVector;
+    #endregion
+
+    #region Events
+    public event Action OnLand;
+    public event Action OnJump;
+    public event Action OnHit;
+    public event Action OnFall;
     #endregion
 
     private void Awake()
 	{
+		instance = this;
 		m_PlayerFX = GetComponentInChildren<PlayerFX>();
-        if (m_PlayerFX != null) { m_cmEvent = this; Debug.Log("Player FX Loaded"); }
         m_RB = GetComponent<Rigidbody2D>();
 		m_Collider = GetComponentInChildren<CapsuleCollider2D>();
 		m_SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
@@ -83,34 +96,28 @@ public class CharacterMovement : MonoBehaviour
 		m_MoveSpeed = m_MoveSpeedBase;
 	}
 
-    #region Events
-    public event Action OnLand;
-    public event Action OnJump;
-	public event Action OnHit;
-	public event Action OnFall;
-    #endregion
+    
 
     #region Functions
-	
+
 	public void Hit(GameObject attacker, float Damage)
 	{
 		m_ScreenMoveVector = (transform.position - attacker.transform.position) * Damage;
 		if (OnHit != null){ OnHit(); }
 	}
 	
+	public void Death()
+	{
+		if(m_RespawnCoroutine == null)
+		{
+			m_RespawnCoroutine = StartCoroutine(C_Respawn());
+		}
+	}
+
 	public Vector2 GetScreenShakeStrength()
 	{
 		return m_ScreenMoveVector;
 	}
-
-    public void DebugCurrentCollider()
-	{
-		Debug.Log(m_GroundSensor.GetCollider().gameObject.name);
-        List<ContactPoint2D> contacts = new List<ContactPoint2D>();
-        m_Collider.GetContacts(contacts);
-        Debug.Log("seperation is : " + contacts[0].separation);
-		Debug.Log(contacts[0].point.y);
-    }
 
 	private void Jump() // Function that makes the player jump
 	{
@@ -354,7 +361,6 @@ public class CharacterMovement : MonoBehaviour
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        //Debug.Log(m_mostRecentContactY + " + " + gameObject.transform.position.y);
 
         if (m_RB.linearVelocityY < 0)
         {
@@ -380,6 +386,16 @@ public class CharacterMovement : MonoBehaviour
     
     #region Coroutines
 
+	IEnumerator C_Respawn()
+	{
+		Time.timeScale = 0.2f;
+		yield return new WaitForSecondsRealtime(m_RespawnTime);
+		Time.timeScale = 1.0f;
+		gameObject.transform.position = m_RespawnPos.position;
+		gameObject.GetComponent<HealthComponent>().SetHealth(100);
+		m_RespawnCoroutine = null;
+
+	}
     IEnumerator C_StopFallDown()
     {
         yield return new WaitForSeconds(0.4f);
