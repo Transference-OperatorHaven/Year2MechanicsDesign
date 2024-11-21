@@ -6,7 +6,6 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 
 public class ColourGame : MonoBehaviour
@@ -183,7 +182,7 @@ public class ColourGame : MonoBehaviour
             {
                 if (hit[i].collider.gameObject.GetComponentInParent<Rigidbody2D>() != null && !collidersHit.Contains(hit[i].collider))
                 {
-                    Vector2 newDir = (hit[i].collider.gameObject.transform.position - new Vector3(transform.position.x, transform.position.y + 1)) * hit[i].collider.gameObject.GetComponentInParent<Rigidbody2D>().linearVelocity.Abs();
+                    Vector2 newDir = (hit[i].collider.gameObject.transform.position - new Vector3(transform.position.x, transform.position.y + 1)) * new Vector2(Mathf.Abs(hit[i].collider.gameObject.GetComponentInParent<Rigidbody2D>().linearVelocity.x), Mathf.Abs(hit[i].collider.gameObject.GetComponentInParent<Rigidbody2D>().linearVelocity.y));
                     hit[i].collider.gameObject.GetComponentInParent<Rigidbody2D>().linearVelocity = newDir;
                     collidersHit.Add(hit[i].collider);
                 }

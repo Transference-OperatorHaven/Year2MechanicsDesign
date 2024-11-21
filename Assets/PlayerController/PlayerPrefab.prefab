@@ -80,6 +80,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_GroundSensor: {fileID: 2938755533799335079}
   m_MoveSpeedBase: 5
+  m_MoveSpeed: 0
   m_JumpStrength: 10
   m_totalJumps: 1
   m_JumpCount: 0

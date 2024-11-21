@@ -5,6 +5,6 @@ public class PlayGame : MonoBehaviour
 {
     public void Play()
     {
-        SceneManager.LoadScene("Assignment 1", LoadSceneMode.Single);
+        SceneManager.LoadScene("Assessment 2", LoadSceneMode.Single);
     }
 }

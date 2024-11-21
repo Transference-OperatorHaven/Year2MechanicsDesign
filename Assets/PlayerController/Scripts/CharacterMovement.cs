@@ -103,7 +103,7 @@ public class CharacterMovement : MonoBehaviour
 	public void Hit(GameObject attacker, float Damage)
 	{
 		m_ScreenMoveVector = (transform.position - attacker.transform.position) * Damage;
-		if (OnHit != null){ OnHit(); }
+		if (OnHit != null && Damage < 0){ OnHit(); }
 	}
 	
 	public void Death()
