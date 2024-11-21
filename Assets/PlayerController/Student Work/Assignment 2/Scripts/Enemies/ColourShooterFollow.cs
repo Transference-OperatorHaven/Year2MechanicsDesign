@@ -44,15 +44,13 @@ public class ColourShooterFollow : ColourShooterBase
     void SetShootingPos()
     {
         Vector2 v0 = transform.position;
-        Vector2 v1 = new Vector3(m_Player.transform.position.x, m_Player.transform.position.y+1, m_Player.transform.position.z);
+        Vector2 v1 = new Vector3(m_Player.transform.position.x, m_Player.transform.position.y + 1, m_Player.transform.position.z);
         float D1 = (v1 - v0).magnitude;
         Vector2 v2 = (D1 / m_ProjectileSpeed) * m_Player.GetComponent<Rigidbody2D>().linearVelocity;
         Vector2 v3 = v1 + v2;
-        float D2 = (v3 - v0).magnitude;
         Vector2 v4 = v3 - v0;
         Vector2 point = v0 + v4 / v4.magnitude * m_Range;
         m_ShootingStart.transform.position = point;
-
     }
 
     IEnumerator C_RotateCoroutine()

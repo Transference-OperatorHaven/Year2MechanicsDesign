@@ -173,7 +173,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      rotary barrel_0: -762447902974824100
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

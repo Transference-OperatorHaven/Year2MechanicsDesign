@@ -14,7 +14,7 @@ public class CharacterMovement : MonoBehaviour
 
 	[SerializeField] private StatefulRaycastSensor2D m_GroundSensor;
     [SerializeField] private float m_MoveSpeedBase;
-    private float m_MoveSpeed;
+    public float m_MoveSpeed;
     private float m_MoveDir;
 	[SerializeField] private float m_JumpStrength;
 	[SerializeField] private int m_totalJumps;
@@ -128,7 +128,7 @@ public class CharacterMovement : MonoBehaviour
 		{
 			if (contacts.Count != 0)
 			{
-				if (m_CoyoteTimeCountDown > 0f || (contacts[0].separation > -0.05 || contacts[0].point.y >= transform.position.y + 1))
+				if ((contacts[0].separation > -0.05 || true /*contacts[0].point.y >= transform.position.y + 1*/))
 				{
 					ResetConditions();
 					CancelCrouch();
@@ -149,6 +149,26 @@ public class CharacterMovement : MonoBehaviour
 					if (!m_Jumping) { JumpCancel(); }
 				}
 			}
+			else if(m_CoyoteTimeCountDown > 0f)
+			{
+                ResetConditions();
+                CancelCrouch();
+                m_RB.AddForce(Vector2.up * m_JumpStrength, ForceMode2D.Impulse);
+                if (OnJump != null) { OnJump(); }
+                m_JumpCount++;
+                m_JumpBufferCountDown = 0f;
+                if (m_AntiGravCheckCoroutine == null)
+                {
+                    m_AntiGravCountDown = m_AntiGravTimer;
+                    m_AntiGravCheckCoroutine = StartCoroutine(C_AntiGravApex());
+                }
+                if (m_JumpBufferCoroutine != null)
+                {
+                    StopCoroutine(m_JumpBufferCoroutine);
+                    m_JumpBufferCoroutine = null;
+                }
+                if (!m_Jumping) { JumpCancel(); }
+            }
 		}
     }
 
