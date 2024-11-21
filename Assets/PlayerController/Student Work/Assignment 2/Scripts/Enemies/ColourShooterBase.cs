@@ -112,7 +112,6 @@ public class ColourShooterBase : MonoBehaviour
     protected virtual void SetShooter(int i)
     {
         m_Renderer.color = m_ShooterColours[i];
-        gameObject.layer = GetLayerFromMask(m_ShooterLayers[i]);
     }
 
     protected void MakeProj(int i)

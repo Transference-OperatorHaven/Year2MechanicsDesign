@@ -194,6 +194,7 @@ public class ColourGame : MonoBehaviour
         }
         m_RB.constraints = RigidbodyConstraints2D.FreezeRotation;
         m_RB.linearVelocity = storedMomentum;
+        if (m_Player.GetComponentInChildren<StatefulRaycastSensor2D>().RunCheck()) { m_RB.linearVelocityX = 0; }
         m_Orb.enabled = false;
         StopCoroutine(m_EmitOrbCoroutine);
         m_EmitOrbCoroutine = null;

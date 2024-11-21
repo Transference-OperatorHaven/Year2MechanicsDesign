@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Burst.Intrinsics;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
 
@@ -28,14 +29,13 @@ public class ColourShooterFollow : ColourShooterBase
     protected override void SetShooter(int i)
     {
         m_Renderer.color = m_ShooterColours[i];
-        gameObject.layer = GetLayerFromMask(m_ShooterLayers[i]);
         m_SpriteBarrel.color = m_ShooterColours[i];
     }
 
     private Quaternion RotateTowardsTarget()
     {
         float offset = 180f;
-        Vector2 direction = m_Player.transform.position - transform.position;
+        Vector2 direction = (m_Player.transform.position + (Vector3)m_Player.GetComponent<Rigidbody2D>().linearVelocity) - transform.position;
         direction.Normalize();
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         return Quaternion.Euler(Vector3.forward * (angle + offset));
@@ -43,8 +43,16 @@ public class ColourShooterFollow : ColourShooterBase
 
     void SetShootingPos()
     {
-        Vector3 shootDir = (m_Player.transform.position - gameObject.transform.position).normalized;
-        m_ShootingStart.transform.position = gameObject.transform.position + (shootDir * m_Range);
+        Vector2 v0 = transform.position;
+        Vector2 v1 = new Vector3(m_Player.transform.position.x, m_Player.transform.position.y+1, m_Player.transform.position.z);
+        float D1 = (v1 - v0).magnitude;
+        Vector2 v2 = (D1 / m_ProjectileSpeed) * m_Player.GetComponent<Rigidbody2D>().linearVelocity;
+        Vector2 v3 = v1 + v2;
+        float D2 = (v3 - v0).magnitude;
+        Vector2 v4 = v3 - v0;
+        Vector2 point = v0 + v4 / v4.magnitude * m_Range;
+        m_ShootingStart.transform.position = point;
+
     }
 
     IEnumerator C_RotateCoroutine()

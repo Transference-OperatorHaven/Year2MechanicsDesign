@@ -34,13 +34,13 @@ public class PlayerFX : MonoBehaviour
         m_PlayerParticles = GetComponent<ParticleSystem>();
         m_Audio = GetComponent<AudioSource>();
 
-        CharacterMovement.instance.OnJump += Jump;
+        m_CharMov.OnJump += Jump;
 
-        CharacterMovement.instance.OnLand += Land;
+        m_CharMov.OnLand += Land;
 
-        CharacterMovement.instance.OnHit += Hit;
+        m_CharMov.OnHit += Hit;
 
-        CharacterMovement.instance.OnFall += Fall;
+        m_CharMov.OnFall += Fall;
     }
 
     void Jump()
